@@ -1,0 +1,260 @@
+# =============================================================================
+# OpenRuntime Enhanced Alerting Rules
+# =============================================================================
+
+groups:
+  # =============================================================================
+  # System Health Alerts
+  # =============================================================================
+  - name: openruntime.system.health
+    interval: 30s
+    rules:
+      - alert: OpenRuntimeDown
+        expr: up{job="openruntime-enhanced"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: openruntime-enhanced
+        annotations:
+          summary: "OpenRuntime Enhanced is down"
+          description: "OpenRuntime Enhanced has been down for more than 1 minute."
+          runbook_url: "https://docs.openruntime.example.com/runbooks/service-down"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 90% for more than 5 minutes. Current usage: {{ $value | humanizePercentage }}"
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 10 minutes on {{ $labels.instance }}"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}) / node_filesystem_size_bytes{fstype!="tmpfs"} > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "Disk space is running low"
+          description: "Disk usage is above 85% on {{ $labels.instance }}:{{ $labels.mountpoint }}"
+
+  # =============================================================================
+  # Application Performance Alerts
+  # =============================================================================
+  - name: openruntime.performance
+    interval: 15s
+    rules:
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="openruntime-enhanced"}[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "High request latency detected"
+          description: "95th percentile latency is above 2 seconds for {{ $labels.method }} {{ $labels.endpoint }}"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{job="openruntime-enhanced",status=~"5.."}[5m]) / rate(http_requests_total{job="openruntime-enhanced"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          service: openruntime-enhanced
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for more than 2 minutes. Current rate: {{ $value | humanizePercentage }}"
+
+      - alert: ConcurrentTasksHigh
+        expr: openruntime_concurrent_tasks > 15
+        for: 5m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "High number of concurrent tasks"
+          description: "Number of concurrent tasks is {{ $value }}, above the warning threshold of 15"
+
+      - alert: TaskFailureRateHigh
+        expr: rate(openruntime_tasks_failed_total[5m]) / rate(openruntime_tasks_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "High task failure rate"
+          description: "Task failure rate is {{ $value | humanizePercentage }}, above 10%"
+
+  # =============================================================================
+  # GPU Performance Alerts
+  # =============================================================================
+  - name: openruntime.gpu
+    interval: 10s
+    rules:
+      - alert: GPUUtilizationHigh
+        expr: openruntime_gpu_utilization > 95
+        for: 5m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "GPU utilization is very high"
+          description: "GPU {{ $labels.device_id }} utilization is {{ $value }}% for more than 5 minutes"
+
+      - alert: GPUMemoryHigh
+        expr: openruntime_gpu_memory_used / openruntime_gpu_memory_total > 0.9
+        for: 3m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "GPU memory usage is high"
+          description: "GPU {{ $labels.device_id }} memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: GPUTemperatureHigh
+        expr: openruntime_gpu_temperature > 80
+        for: 2m
+        labels:
+          severity: critical
+          service: openruntime-enhanced
+        annotations:
+          summary: "GPU temperature is too high"
+          description: "GPU {{ $labels.device_id }} temperature is {{ $value }}°C, above 80°C threshold"
+
+      - alert: GPUNotResponding
+        expr: absent(openruntime_gpu_utilization) and ON() up{job="openruntime-enhanced"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          service: openruntime-enhanced
+        annotations:
+          summary: "GPU metrics not available"
+          description: "GPU metrics are not being reported while the service is up"
+
+  # =============================================================================
+  # AI/ML Performance Alerts
+  # =============================================================================
+  - name: openruntime.ai
+    interval: 30s
+    rules:
+      - alert: AITaskLatencyHigh
+        expr: histogram_quantile(0.95, rate(openruntime_ai_task_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "AI task latency is high"
+          description: "95th percentile AI task latency is {{ $value }} seconds, above 30s threshold"
+
+      - alert: OpenAIAPIRateLimited
+        expr: rate(openruntime_openai_rate_limited_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "OpenAI API rate limiting detected"
+          description: "OpenAI API is rate limiting requests. Rate: {{ $value }} requests/second"
+
+      - alert: AITokenUsageHigh
+        expr: rate(openruntime_ai_tokens_used_total[1h]) > 50000
+        for: 15m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "High AI token usage"
+          description: "AI token usage is {{ $value }} tokens/hour, approaching limits"
+
+      - alert: AIModelUnavailable
+        expr: openruntime_ai_model_available == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: openruntime-enhanced
+        annotations:
+          summary: "AI model is unavailable"
+          description: "AI model {{ $labels.model }} is not available"
+
+  # =============================================================================
+  # Infrastructure Alerts
+  # =============================================================================
+  - name: openruntime.infrastructure
+    interval: 60s
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis service is not responding"
+
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prometheus target is down"
+          description: "Prometheus target {{ $labels.job }} on {{ $labels.instance }} is down"
+
+      - alert: TooManyRestarts
+        expr: changes(process_start_time_seconds{job="openruntime-enhanced"}[1h]) > 3
+        for: 5m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "Service restarting frequently"
+          description: "OpenRuntime Enhanced has restarted {{ $value }} times in the last hour"
+
+  # =============================================================================
+  # Security Alerts
+  # =============================================================================
+  - name: openruntime.security
+    interval: 30s
+    rules:
+      - alert: UnauthorizedAccess
+        expr: rate(http_requests_total{job="openruntime-enhanced",status="401"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "High rate of unauthorized access attempts"
+          description: "Rate of 401 responses is {{ $value }} requests/second"
+
+      - alert: SuspiciousShellCommands
+        expr: rate(openruntime_shell_commands_blocked_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "Suspicious shell commands detected"
+          description: "{{ $value }} potentially dangerous shell commands were blocked in the last 5 minutes"
+
+      - alert: HighAPIKeyUsage
+        expr: rate(openruntime_api_requests_total[1h]) by (api_key_id) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: openruntime-enhanced
+        annotations:
+          summary: "High API usage from single key"
+          description: "API key {{ $labels.api_key_id }} is making {{ $value }} requests/hour" 

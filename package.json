@@ -1,0 +1,35 @@
+{
+  "name": "openruntime-enhanced",
+  "version": "1.0.0",
+  "description": "Advanced GPU Runtime System for macOS with AI Integration",
+  "main": "openruntime_enhanced.py",
+  "scripts": {
+    "start": "python openruntime_enhanced.py",
+    "test": "pytest tests/ -v",
+    "lint": "flake8 . && black --check . && isort --check-only .",
+    "format": "black . && isort .",
+    "docker:build": "docker build -t openruntime-enhanced .",
+    "docker:run": "docker-compose up -d"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/openruntime-enhanced.git"
+  },
+  "keywords": [
+    "gpu",
+    "metal",
+    "ai",
+    "openai",
+    "fastapi",
+    "rust",
+    "macos",
+    "machine-learning",
+    "performance"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/your-username/openruntime-enhanced/issues"
+  },
+  "homepage": "https://github.com/your-username/openruntime-enhanced#readme"
+} 

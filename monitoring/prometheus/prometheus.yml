@@ -1,0 +1,104 @@
+# =============================================================================
+# Prometheus Configuration for OpenRuntime Enhanced
+# =============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'openruntime-enhanced'
+    replica: 'prometheus-1'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load alerting rules
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+  # OpenRuntime Enhanced main application
+  - job_name: 'openruntime-enhanced'
+    static_configs:
+      - targets: ['openruntime-enhanced:8001']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+
+  # cAdvisor - Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    honor_labels: true
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Custom GPU metrics endpoint
+  - job_name: 'openruntime-gpu-metrics'
+    static_configs:
+      - targets: ['openruntime-enhanced:8001']
+    metrics_path: /metrics/gpu
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  # AI metrics endpoint
+  - job_name: 'openruntime-ai-metrics'
+    static_configs:
+      - targets: ['openruntime-enhanced:8001']
+    metrics_path: /metrics/ai
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Performance metrics endpoint
+  - job_name: 'openruntime-performance'
+    static_configs:
+      - targets: ['openruntime-enhanced:8001']
+    metrics_path: /metrics/performance
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+# Remote write configuration for long-term storage
+remote_write:
+  - url: "http://cortex:9009/api/prom/push"
+    queue_config:
+      max_samples_per_send: 1000
+      max_shards: 200
+      capacity: 2500
+
+# Remote read configuration
+remote_read:
+  - url: "http://cortex:9009/api/prom/read"
+    read_recent: true 
