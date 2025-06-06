@@ -631,19 +631,15 @@ compiled = await runtime_manager.compile_kernel(kernel)
 
 ## Roadmap
 
-### v1.1.0 (Q2 2024)
+###
 - [ ] Support for additional GPU backends (Vulkan, OpenCL)
 - [ ] Distributed computing across multiple machines
 - [ ] Advanced AI model fine-tuning capabilities
 - [ ] Real-time collaborative workflows
-
-### v1.2.0 (Q3 2024)
 - [ ] Integration with Hugging Face Transformers
 - [ ] Custom neural network architectures
 - [ ] Advanced memory management and optimization
 - [ ] Multi-tenant isolation and resource quotas
-
-### v2.0.0 (Q4 2024)
 - [ ] Native support for other platforms (Linux, Windows)
 - [ ] Edge computing deployment options
 - [ ] Advanced security and compliance features
