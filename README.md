@@ -1,4 +1,4 @@
-# OpenRuntime Enhanced
+# OpenRuntime 
 
 Advanced GPU Runtime System for macOS with AI Integration
 
@@ -662,11 +662,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Rust Community** for the high-performance client library
 
 ## Support
-
-- **Documentation**: [docs.openruntime.example.com](https://docs.openruntime.example.com)
-- **Issues**: [GitHub Issues](https://github.com/your-org/openruntime-enhanced/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/openruntime-enhanced/discussions)
-- **Email**: support@openruntime.example.com
+- **Email**: nikjois@llamasearch.ai
 
 ---
 
