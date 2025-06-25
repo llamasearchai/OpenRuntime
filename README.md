@@ -662,4 +662,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**OpenRuntime Enhanced** - Supercharge your GPU computing with AI
