@@ -10,7 +10,7 @@ Advanced GPU Runtime System for macOS with AI Integration
 
 ## Overview
 
-OpenRuntime Enhanced is a comprehensive GPU computing and ML inference platform designed specifically for macOS systems with Apple Silicon. It combines high-performance GPU acceleration with advanced AI capabilities through OpenAI integration, LangChain workflows, and shell-gpt automation.
+OpenRuntime  is a comprehensive GPU computing and ML inference platform designed specifically for macOS systems with Apple Silicon. It combines high-performance GPU acceleration with advanced AI capabilities through OpenAI integration, LangChain workflows, and shell-gpt automation.
 
 ### Key Features
 
