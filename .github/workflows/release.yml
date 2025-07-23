@@ -1,0 +1,240 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  PYTHON_VERSION: "3.11"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # =============================================================================
+  # Pre-release Testing
+  # =============================================================================
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11, 3.12]
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run tests
+      run: |
+        pytest tests/test_openruntime.py -v --cov=. --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+
+  # =============================================================================
+  # Security Scan
+  # =============================================================================
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # =============================================================================
+  # Build and Push Docker Image
+  # =============================================================================
+  docker:
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=ref,event=branch
+          type=sha
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          VERSION=${{ github.ref_name }}
+          VCS_REF=${{ github.sha }}
+
+  # =============================================================================
+  # Create GitHub Release
+  # =============================================================================
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [test, security, docker]
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Generate changelog from commits
+        echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+        git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 2>/dev/null || echo "")..HEAD >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref_name }}
+        body: |
+          ## OpenRuntime ${{ github.ref_name }}
+          
+          Advanced GPU Runtime System for macOS with MLX Metal Integration
+          
+          ### Changes
+          ${{ steps.changelog.outputs.CHANGELOG }}
+          
+          ### Docker Image
+          ```bash
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          ```
+          
+          ### Installation
+          ```bash
+          pip install git+https://github.com/${{ github.repository }}.git@${{ github.ref_name }}
+          ```
+          
+          ### Quick Start
+          ```bash
+          python openruntime.py --host 127.0.0.1 --port 8000
+          ```
+          
+          ### Features
+          - MLX Metal Performance Shaders integration
+          - PyTorch Metal support
+          - Real-time GPU monitoring
+          - RESTful API endpoints
+          - WebSocket streaming
+          - Professional CLI interface
+          - Comprehensive test suite
+          - Docker support
+          
+          ### Documentation
+          - [API Documentation](https://github.com/${{ github.repository }}/blob/main/README.md#api-reference)
+          - [CLI Commands](https://github.com/${{ github.repository }}/blob/main/README.md#cli-commands)
+          - [Deployment Guide](https://github.com/${{ github.repository }}/blob/main/README.md#deployment)
+          
+          ### Author
+          **Nik Jois** <nikjois@llamasearch.ai>
+        draft: false
+        prerelease: false
+
+  # =============================================================================
+  # Publish to PyPI
+  # =============================================================================
+  publish-pypi:
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: python -m build
+    
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        skip_existing: true
+
+  # =============================================================================
+  # Update Documentation
+  # =============================================================================
+  update-docs:
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Update version in README
+      run: |
+        sed -i "s/Version: [0-9.]*/Version: ${{ github.ref_name }}/" README.md
+    
+    - name: Commit documentation updates
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add README.md
+        git commit -m "Update documentation for release ${{ github.ref_name }}" || echo "No changes to commit"
+        git push 

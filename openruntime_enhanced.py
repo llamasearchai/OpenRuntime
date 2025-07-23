@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
 """
 OpenRuntime Enhanced: Advanced GPU Runtime System with AI Integration
-A comprehensive GPU computing and ML inference platform with OpenAI, LangChain, and shell-gpt integration
+A comprehensive GPU computing and ML inference platform for macOS
 
-Features:
-- Multi-GPU runtime management with AI orchestration
-- OpenAI Agents SDK integration
-- LangChain workflow automation
-- Shell-GPT command execution
-- Real-time AI-driven performance optimization
-- Advanced ML model inference pipeline
-- RESTful API endpoints with AI capabilities
-- WebSocket streaming with AI insights
+Author: Nik Jois <nikjois@llamasearch.ai>
 """
 
 import asyncio
@@ -19,7 +11,6 @@ import json
 import logging
 import os
 import subprocess
-import sys
 import threading
 import time
 import uuid
@@ -29,85 +20,69 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 # Core dependencies
 import numpy as np
 import uvicorn
-import yaml
-from fastapi import (BackgroundTasks, Depends, FastAPI, HTTPException,
-                     Security, WebSocket, status)
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, StreamingResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field, validator
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
 
-# AI Integration dependencies
+# AI Integration
+import openai
+
+# GPU and ML dependencies (mock implementations for compatibility)
 try:
-    import openai
-    from openai import AsyncOpenAI
+    import mlx.core as mx
+    import mlx.nn as nn
 
-    OPENAI_AVAILABLE = True
+    MLX_AVAILABLE = True
+    print("MLX Metal Performance framework available")
 except ImportError:
-    OPENAI_AVAILABLE = False
-    print("OpenAI not available - AI features disabled")
-
-try:
-    from langchain.chains import LLMChain
-    from langchain_community.tools import ShellTool
-    from langchain_core.callbacks import BaseCallbackHandler
-    from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
-    from langchain_core.prompts import PromptTemplate
-    from langchain_core.tools import Tool
-    from langchain_openai import ChatOpenAI
-
-    LANGCHAIN_AVAILABLE = True
-except ImportError:
-    LANGCHAIN_AVAILABLE = False
-    print("LangChain not available - workflow automation disabled")
-
-try:
-    import shell_gpt
-    from shell_gpt.app import main as sgpt_main
-
-    SHELLGPT_AVAILABLE = True
-except ImportError:
-    SHELLGPT_AVAILABLE = False
-    print("shell-gpt not available - shell AI features disabled")
-
-# GPU and ML dependencies
-try:
-    import metal_performance_shaders as mps
-
-    METAL_AVAILABLE = True
-except ImportError:
-    METAL_AVAILABLE = False
+    MLX_AVAILABLE = False
+    print("MLX not available - using CPU fallback")
 
 try:
     import torch
-    import torch.nn as nn
 
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
+    print("PyTorch not available - using NumPy fallback")
 
-# Configure enhanced logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
-)
-logger = logging.getLogger("OpenRuntimeEnhanced")
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("OpenRuntime")
+
+# Version information
+__version__ = "2.0.0"
+__author__ = "Nik Jois"
+__email__ = "nikjois@llamasearch.ai"
 
 # =============================================================================
-# Enhanced Data Models
+# Core Data Models
 # =============================================================================
+
+
+class DeviceType(str, Enum):
+    CPU = "cpu"
+    MLX = "mlx"
+    METAL = "metal"
+    CUDA = "cuda"
+
+
+class TaskStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class AIProviderType(str, Enum):
     OPENAI = "openai"
-    ANTHROPIC = "anthropic"
     LOCAL = "local"
-    HUGGINGFACE = "huggingface"
 
 
 class WorkflowType(str, Enum):
@@ -127,6 +102,28 @@ class AgentRole(str, Enum):
 
 
 @dataclass
+class GPUDevice:
+    id: str
+    name: str
+    type: DeviceType
+    memory_total: int
+    memory_available: int
+    compute_units: int
+    is_available: bool = True
+
+
+@dataclass
+class RuntimeMetrics:
+    device_id: str
+    timestamp: datetime
+    memory_usage: float
+    gpu_utilization: float
+    temperature: float
+    power_usage: float
+    throughput: float
+
+
+@dataclass
 class AIAgent:
     id: str
     name: str
@@ -140,16 +137,21 @@ class AIAgent:
     system_prompt: str = ""
 
 
-@dataclass
-class WorkflowTask:
-    id: str
-    workflow_type: WorkflowType
-    agent_id: str
-    input_data: Dict[str, Any]
-    expected_output: str
-    priority: int = 1
-    timeout: int = 300
-    dependencies: List[str] = None
+class TaskRequest(BaseModel):
+    task_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()))
+    operation: str = Field(..., description="Operation type: compute, inference, benchmark")
+    data: Dict[str, Any] = Field(default_factory=dict)
+    device_preference: Optional[DeviceType] = None
+    priority: int = Field(default=1, ge=1, le=10)
+
+
+class TaskResponse(BaseModel):
+    task_id: str
+    status: TaskStatus
+    result: Optional[Dict[str, Any]] = None
+    metrics: Optional[Dict[str, float]] = None
+    error: Optional[str] = None
+    execution_time: Optional[float] = None
 
 
 class AITaskRequest(BaseModel):
@@ -177,9 +179,80 @@ class CodeGenerationRequest(BaseModel):
     context: Dict[str, Any] = Field(default_factory=dict)
     optimization_target: str = "performance"
     include_tests: bool = True
-    """
-    Request model for code generation tasks.
-    """
+
+
+# =============================================================================
+# MLX Metal Performance Integration
+# =============================================================================
+
+
+class MLXRuntimeManager:
+    """MLX Metal Performance Shaders integration for Apple Silicon"""
+
+    def __init__(self):
+        self.available = MLX_AVAILABLE
+        self.device_info = self._get_device_info()
+
+    def _get_device_info(self) -> Dict[str, Any]:
+        """Get MLX device information"""
+        if not self.available:
+            return {"available": False, "reason": "MLX not installed"}
+
+        try:
+            # Get device capabilities
+            return {
+                "available": True,
+                "device_count": 1,  # Apple Silicon typically has unified memory
+                "memory_limit": mx.metal.get_memory_limit() if hasattr(mx, "metal") else 16 * 1024**3,
+                "active_memory": mx.metal.get_active_memory() if hasattr(mx, "metal") else 0,
+            }
+        except Exception as e:
+            return {"available": False, "error": str(e)}
+
+    async def matrix_multiply_mlx(self, size: int) -> Dict[str, Any]:
+        """Perform matrix multiplication using MLX"""
+        if not self.available:
+            raise RuntimeError("MLX not available")
+
+        start_time = time.time()
+
+        # Create random matrices using MLX
+        a = mx.random.normal((size, size))
+        b = mx.random.normal((size, size))
+
+        # Perform matrix multiplication on Metal
+        c = mx.matmul(a, b)
+
+        # Force evaluation
+        mx.eval(c)
+
+        duration = time.time() - start_time
+        gflops = (2 * size**3) / (duration * 1e9)
+
+        return {"gflops": gflops, "duration": duration, "device": "mlx_metal", "memory_used": c.nbytes}
+
+    async def neural_network_inference_mlx(self, input_size: int, hidden_size: int, output_size: int) -> Dict[str, Any]:
+        """Run neural network inference using MLX"""
+        if not self.available:
+            raise RuntimeError("MLX not available")
+
+        start_time = time.time()
+
+        # Create a simple neural network
+        x = mx.random.normal((1, input_size))
+        w1 = mx.random.normal((input_size, hidden_size))
+        w2 = mx.random.normal((hidden_size, output_size))
+
+        # Forward pass
+        h = mx.maximum(mx.matmul(x, w1), 0)  # ReLU activation
+        output = mx.matmul(h, w2)
+
+        # Force evaluation
+        mx.eval(output)
+
+        duration = time.time() - start_time
+
+        return {"inference_time": duration, "throughput": 1.0 / duration, "device": "mlx_metal", "output_shape": output.shape}
 
 
 # =============================================================================
@@ -188,140 +261,98 @@ class CodeGenerationRequest(BaseModel):
 
 
 class AIAgentManager:
-    """
-    Manages AI agents for various tasks such as optimization, analysis, and code generation.
-    """
+    """Manages AI agents and workflows using OpenAI directly"""
+
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
-        self.agents: Dict[str, AIAgent] = {}
         self.openai_client = None
-        self.langchain_agents = {}
-        # Note: ConversationBufferMemory is deprecated in LangChain v0.2+
-        # Modern LangChain uses state management in LangGraph
-        self.conversation_memory = None
-        self._initialize_ai_providers()
+        self.agents: Dict[str, AIAgent] = {}
+        self._initialize_openai()
         self._initialize_agents()
 
-    def _initialize_ai_providers(self):
-        """Initialize AI provider connections"""
-        if OPENAI_AVAILABLE:
-            api_key = self.config.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
-            if api_key:
-                self.openai_client = AsyncOpenAI(api_key=api_key)
-                logger.info("OpenAI client initialized")
-            else:
-                logger.warning("OpenAI API key not found")
+    def _initialize_openai(self):
+        """Initialize OpenAI client"""
+        api_key = os.getenv("OPENAI_API_KEY") or self.config.get("openai_api_key")
+        if api_key:
+            self.openai_client = openai.OpenAI(api_key=api_key)
+            logger.info("OpenAI client initialized")
+        else:
+            logger.warning("OpenAI API key not provided - AI features will be limited")
 
     def _initialize_agents(self) -> None:
-        """
-        Initialize AI agents with specific roles and capabilities.
-        """
-        agent_configs = [
+        """Initialize AI agents"""
+        agents_config = [
             {
                 "id": "perf_optimizer",
                 "name": "Performance Optimizer",
                 "role": AgentRole.PERFORMANCE_OPTIMIZER,
-                "provider": AIProviderType.OPENAI,
-                "model": "gpt-4o-mini",
-                "system_prompt": """You are a GPU performance optimization expert. 
-                Analyze system metrics and provide optimization recommendations for GPU workloads.
-                Focus on memory usage, compute efficiency, and throughput optimization.""",
+                "system_prompt": "You are a GPU performance optimization expert. Analyze system metrics and provide optimization recommendations for GPU workloads. Focus on memory usage, compute efficiency, and throughput optimization.",
                 "capabilities": ["performance_analysis", "optimization_recommendations", "benchmarking"],
             },
             {
                 "id": "system_analyst",
                 "name": "System Analyst",
                 "role": AgentRole.SYSTEM_ANALYST,
-                "provider": AIProviderType.OPENAI,
-                "model": "gpt-4o-mini",
-                "system_prompt": """You are a system analysis expert specializing in GPU computing systems.
-                Analyze system behavior, identify bottlenecks, and provide diagnostic insights.""",
+                "system_prompt": "You are a system analysis expert specializing in GPU computing systems. Analyze system behavior, identify bottlenecks, and provide diagnostic insights.",
                 "capabilities": ["system_diagnostics", "bottleneck_analysis", "resource_monitoring"],
             },
             {
                 "id": "code_generator",
                 "name": "Code Generator",
                 "role": AgentRole.CODE_GENERATOR,
-                "provider": AIProviderType.OPENAI,
-                "model": "gpt-4o-mini",
-                "system_prompt": """You are an expert programmer specializing in GPU computing and parallel algorithms.
-                Generate optimized code for various programming languages with focus on performance.""",
+                "system_prompt": "You are an expert programmer specializing in GPU computing and parallel algorithms. Generate optimized code for various programming languages with focus on performance.",
                 "capabilities": ["code_generation", "optimization", "testing", "documentation"],
             },
             {
                 "id": "shell_executor",
                 "name": "Shell Executor",
                 "role": AgentRole.SHELL_EXECUTOR,
-                "provider": AIProviderType.OPENAI,
-                "model": "gpt-4o-mini",
-                "system_prompt": """You are a shell command expert. Generate safe and efficient shell commands
-                for system administration and automation tasks. Always prioritize security.""",
+                "system_prompt": "You are a shell command expert. Generate safe and efficient shell commands for system administration and automation tasks. Always prioritize security.",
                 "capabilities": ["shell_commands", "automation", "system_administration"],
             },
         ]
 
-        for config in agent_configs:
-            agent = AIAgent(**config)
-            self.agents[agent.id] = agent
-            logger.info(f"Initialized agent: {agent.name}")
-
-        if LANGCHAIN_AVAILABLE and self.openai_client:
-            self._initialize_langchain_agents()
-
-    def _initialize_langchain_agents(self):
-        """Initialize LangChain agents for complex workflows"""
-        try:
-            llm = ChatOpenAI(
-                model_name="gpt-4o-mini",
-                temperature=0.7,
-                openai_api_key=self.config.get("openai_api_key") or os.getenv("OPENAI_API_KEY"),
+        for agent_config in agents_config:
+            agent = AIAgent(
+                id=agent_config["id"],
+                name=agent_config["name"],
+                role=agent_config["role"],
+                provider=AIProviderType.OPENAI,
+                model="gpt-4o-mini",
+                system_prompt=agent_config["system_prompt"],
+                capabilities=agent_config["capabilities"],
             )
+            self.agents[agent.id] = agent
 
-            # Define tools for agents
-            tools = [
-                Tool(name="SystemMetrics", description="Get current system and GPU metrics", func=self._get_system_metrics),
-                Tool(name="ExecuteShell", description="Execute shell commands safely", func=self._execute_shell_command),
-                Tool(name="OptimizeWorkload", description="Optimize GPU workload parameters", func=self._optimize_workload),
-            ]
-
-            # Note: initialize_agent is deprecated in LangChain v0.2+
-            # Modern approach uses LangGraph for agent workflows
-            # For now, we use direct tool calling
-            self.langchain_agents["coordinator"] = {"llm": llm, "tools": tools, "type": "tool_calling_agent"}
-
-            logger.info("LangChain agents initialized")
-        except Exception as e:
-            logger.error(f"Failed to initialize LangChain agents: {e}")
+        logger.info(f"Initialized {len(self.agents)} AI agents")
 
     async def execute_ai_task(self, task: AITaskRequest) -> Dict[str, Any]:
-        """
-        Execute AI task with the appropriate agent.
-
-        Args:
-            task (AITaskRequest): The AI task request containing task details.
-
-        Returns:
-            Dict[str, Any]: The result of the AI task execution.
-        """
+        """Execute an AI task using the appropriate agent"""
         start_time = time.time()
+
+        if not self.openai_client:
+            return {"error": "OpenAI client not available - check API key configuration", "task_id": task.task_id}
 
         try:
             # Select appropriate agent
             agent = self._select_agent(task.agent_role, task.workflow_type)
             if not agent:
-                raise ValueError("No suitable agent available")
+                return {"error": "No suitable agent found for task", "task_id": task.task_id}
 
-            # Execute based on workflow type
-            if task.workflow_type == WorkflowType.COMPUTE_OPTIMIZATION:
-                result = await self._execute_optimization_task(task, agent)
-            elif task.workflow_type == WorkflowType.SYSTEM_ANALYSIS:
-                result = await self._execute_analysis_task(task, agent)
-            elif task.workflow_type == WorkflowType.CODE_GENERATION:
-                result = await self._execute_code_generation_task(task, agent)
-            elif task.workflow_type == WorkflowType.SHELL_AUTOMATION:
-                result = await self._execute_shell_automation_task(task, agent)
+            # Prepare messages
+            messages = [{"role": "system", "content": agent.system_prompt}]
+
+            # Add context if provided
+            if task.context:
+                context_str = json.dumps(task.context, indent=2)
+                messages.append({"role": "user", "content": f"Context: {context_str}\n\nTask: {task.prompt}"})
             else:
-                result = await self._execute_general_task(task, agent)
+                messages.append({"role": "user", "content": task.prompt})
+
+            # Execute with OpenAI
+            response = await self._execute_openai_request(
+                messages=messages, temperature=task.temperature, max_tokens=task.max_tokens, stream=task.stream
+            )
 
             execution_time = time.time() - start_time
 
@@ -329,250 +360,72 @@ class AIAgentManager:
                 "task_id": task.task_id,
                 "agent_id": agent.id,
                 "agent_name": agent.name,
-                "result": result,
+                "workflow_type": task.workflow_type.value,
+                "result": response,
                 "execution_time": execution_time,
-                "timestamp": datetime.now().isoformat(),
+                "status": "completed",
             }
 
         except Exception as e:
             logger.error(f"AI task execution failed: {e}")
-            return {"task_id": task.task_id, "error": str(e), "execution_time": time.time() - start_time}
+            return {"error": str(e), "task_id": task.task_id, "execution_time": time.time() - start_time, "status": "failed"}
 
     def _select_agent(self, preferred_role: Optional[AgentRole], workflow_type: WorkflowType) -> Optional[AIAgent]:
-        """Select the most appropriate agent for the task"""
+        """Select the most appropriate agent for a task"""
         if preferred_role:
-            agent = next((a for a in self.agents.values() if a.role == preferred_role and a.is_active), None)
-            if agent:
-                return agent
+            for agent in self.agents.values():
+                if agent.role == preferred_role and agent.is_active:
+                    return agent
 
-        # Fallback based on workflow type
+        # Default agent selection based on workflow type
         role_mapping = {
             WorkflowType.COMPUTE_OPTIMIZATION: AgentRole.PERFORMANCE_OPTIMIZER,
             WorkflowType.SYSTEM_ANALYSIS: AgentRole.SYSTEM_ANALYST,
             WorkflowType.CODE_GENERATION: AgentRole.CODE_GENERATOR,
             WorkflowType.SHELL_AUTOMATION: AgentRole.SHELL_EXECUTOR,
+            WorkflowType.MODEL_INFERENCE: AgentRole.PERFORMANCE_OPTIMIZER,
         }
 
-        target_role = role_mapping.get(workflow_type)
-        if target_role:
-            return next((a for a in self.agents.values() if a.role == target_role and a.is_active), None)
+        target_role = role_mapping.get(workflow_type, AgentRole.SYSTEM_ANALYST)
+        for agent in self.agents.values():
+            if agent.role == target_role and agent.is_active:
+                return agent
 
-        # Return any active agent
-        return next((a for a in self.agents.values() if a.is_active), None)
+        # Return any active agent as fallback
+        for agent in self.agents.values():
+            if agent.is_active:
+                return agent
 
-    async def _execute_optimization_task(self, task: AITaskRequest, agent: AIAgent) -> Dict[str, Any]:
-        """
-        Execute performance optimization task using AI agent.
+        return None
 
-        Args:
-            task (AITaskRequest): The AI task request containing task details.
-            agent (AIAgent): The AI agent to execute the task.
-
-        Returns:
-            Dict[str, Any]: The result of the optimization task.
-        """
-        if not self.openai_client:
-            raise ValueError("OpenAI client not available")
-
-        system_context = task.context.get("system_metrics", {})
-
-        prompt = f"""
-        Analyze the following GPU system metrics and provide optimization recommendations:
-        
-        System Context: {json.dumps(system_context, indent=2)}
-        
-        User Request: {task.prompt}
-        
-        Please provide:
-        1. Performance bottleneck analysis
-        2. Specific optimization recommendations
-        3. Expected performance improvements
-        4. Implementation steps
-        """
-
-        response = await self.openai_client.chat.completions.create(
-            model=agent.model,
-            messages=[{"role": "system", "content": agent.system_prompt}, {"role": "user", "content": prompt}],
-            temperature=task.temperature,
-            max_tokens=task.max_tokens,
-        )
-
-        return {
-            "type": "optimization_recommendations",
-            "analysis": response.choices[0].message.content,
-            "model_used": agent.model,
-            "tokens_used": response.usage.total_tokens if response.usage else 0,
-        }
-
-    async def _execute_analysis_task(self, task: AITaskRequest, agent: AIAgent) -> Dict[str, Any]:
-        """Execute system analysis task"""
-        if not self.openai_client:
-            raise ValueError("OpenAI client not available")
-
-        system_context = task.context.get("system_metrics", {})
-
-        prompt = f"""
-        Analyze the following system information and provide diagnostic insights:
-        
-        System Context: {json.dumps(system_context, indent=2)}
-        
-        User Request: {task.prompt}
-        
-        Please provide:
-        1. System health assessment
-        2. Bottleneck identification
-        3. Resource utilization analysis
-        4. Recommendations for improvement
-        """
-
-        response = await self.openai_client.chat.completions.create(
-            model=agent.model,
-            messages=[{"role": "system", "content": agent.system_prompt}, {"role": "user", "content": prompt}],
-            temperature=task.temperature,
-            max_tokens=task.max_tokens,
-        )
-
-        return {
-            "type": "system_analysis",
-            "analysis": response.choices[0].message.content,
-            "model_used": agent.model,
-            "tokens_used": response.usage.total_tokens if response.usage else 0,
-        }
-
-    async def _execute_code_generation_task(self, task: AITaskRequest, agent: AIAgent) -> Dict[str, Any]:
-        """
-        Execute code generation task using AI agent.
-
-        Args:
-            task (AITaskRequest): The AI task request containing task details.
-            agent (AIAgent): The AI agent to execute the task.
-
-        Returns:
-            Dict[str, Any]: The generated code and related information.
-        """
-        if not self.openai_client:
-            raise ValueError("OpenAI client not available")
-
-        context = task.context
-
-        prompt = f"""
-        Generate optimized code based on the following request:
-        
-        Request: {task.prompt}
-        Context: {json.dumps(context, indent=2)}
-        
-        Please provide:
-        1. Complete, working code
-        2. Performance optimizations
-        3. Documentation
-        4. Test cases (if applicable)
-        """
-
-        response = await self.openai_client.chat.completions.create(
-            model=agent.model,
-            messages=[{"role": "system", "content": agent.system_prompt}, {"role": "user", "content": prompt}],
-            temperature=task.temperature,
-            max_tokens=task.max_tokens,
-        )
-
-        return {
-            "type": "code_generation",
-            "code": response.choices[0].message.content,
-            "model_used": agent.model,
-            "tokens_used": response.usage.total_tokens if response.usage else 0,
-        }
-
-    async def _execute_shell_automation_task(self, task: AITaskRequest, agent: AIAgent) -> Dict[str, Any]:
-        """Execute shell automation task"""
-        if SHELLGPT_AVAILABLE:
-            return await self._execute_with_shell_gpt(task, agent)
-        else:
-            return await self._execute_shell_fallback(task, agent)
-
-    async def _execute_with_shell_gpt(self, task: AITaskRequest, agent: AIAgent) -> Dict[str, Any]:
-        """Execute shell task using shell-gpt"""
+    async def _execute_openai_request(
+        self, messages: List[Dict], temperature: float, max_tokens: int, stream: bool
+    ) -> Dict[str, Any]:
+        """Execute OpenAI API request"""
         try:
-            # Use shell-gpt for command generation
-            command_prompt = f"Generate shell command for: {task.prompt}"
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini", messages=messages, temperature=temperature, max_tokens=max_tokens, stream=stream
+            )
 
-            # Execute shell-gpt in subprocess
-            result = subprocess.run(["sgpt", "--shell", command_prompt], capture_output=True, text=True, timeout=30)
-
-            if result.returncode == 0:
-                generated_command = result.stdout.strip()
-
-                # Safety check
-                if self._is_safe_command(generated_command):
-                    return {
-                        "type": "shell_automation",
-                        "generated_command": generated_command,
-                        "status": "safe_to_execute",
-                        "agent_used": "shell-gpt",
-                    }
-                else:
-                    return {
-                        "type": "shell_automation",
-                        "generated_command": generated_command,
-                        "status": "requires_manual_review",
-                        "warning": "Command may be unsafe",
-                        "agent_used": "shell-gpt",
-                    }
+            if stream:
+                # Handle streaming response
+                content = ""
+                for chunk in response:
+                    if chunk.choices[0].delta.content:
+                        content += chunk.choices[0].delta.content
+                return {"response": content, "type": "stream"}
             else:
-                raise Exception(f"shell-gpt failed: {result.stderr}")
-
+                return {
+                    "response": response.choices[0].message.content,
+                    "type": "completion",
+                    "usage": {
+                        "prompt_tokens": response.usage.prompt_tokens,
+                        "completion_tokens": response.usage.completion_tokens,
+                        "total_tokens": response.usage.total_tokens,
+                    },
+                }
         except Exception as e:
-            logger.error(f"Shell-GPT execution failed: {e}")
-            return await self._execute_shell_fallback(task, agent)
-
-    async def _execute_shell_fallback(self, task: AITaskRequest, agent: AIAgent) -> Dict[str, Any]:
-        """Fallback shell execution using OpenAI"""
-        if not self.openai_client:
-            raise ValueError("OpenAI client not available")
-
-        prompt = f"""
-        Generate a safe shell command for the following task:
-        
-        Task: {task.prompt}
-        Context: {json.dumps(task.context, indent=2)}
-        
-        Requirements:
-        - Command must be safe to execute
-        - Include explanation of what the command does
-        - Provide any necessary warnings
-        """
-
-        response = await self.openai_client.chat.completions.create(
-            model=agent.model,
-            messages=[{"role": "system", "content": agent.system_prompt}, {"role": "user", "content": prompt}],
-            temperature=task.temperature,
-            max_tokens=task.max_tokens,
-        )
-
-        return {
-            "type": "shell_automation",
-            "response": response.choices[0].message.content,
-            "model_used": agent.model,
-            "agent_used": "openai_fallback",
-        }
-
-    async def _execute_general_task(self, task: AITaskRequest, agent: AIAgent) -> Dict[str, Any]:
-        """Execute general AI task"""
-        if not self.openai_client:
-            raise ValueError("OpenAI client not available")
-
-        response = await self.openai_client.chat.completions.create(
-            model=agent.model,
-            messages=[{"role": "system", "content": agent.system_prompt}, {"role": "user", "content": task.prompt}],
-            temperature=task.temperature,
-            max_tokens=task.max_tokens,
-        )
-
-        return {
-            "type": "general_task",
-            "response": response.choices[0].message.content,
-            "model_used": agent.model,
-            "tokens_used": response.usage.total_tokens if response.usage else 0,
-        }
+            raise Exception(f"OpenAI API error: {e}")
 
     def _is_safe_command(self, command: str) -> bool:
         """Check if a shell command is safe to execute"""
@@ -613,149 +466,171 @@ class AIAgentManager:
         command_lower = command.lower().strip()
         return not any(pattern in command_lower for pattern in dangerous_patterns)
 
-    def _get_system_metrics(self) -> str:
-        """Get current system metrics"""
-        try:
-            import psutil
 
-            cpu_percent = psutil.cpu_percent(interval=1)
-            memory = psutil.virtual_memory()
-            disk = psutil.disk_usage("/")
-
-            metrics = {
-                "cpu_percent": cpu_percent,
-                "memory_percent": memory.percent,
-                "memory_available_gb": memory.available / (1024**3),
-                "disk_percent": disk.percent,
-                "disk_free_gb": disk.free / (1024**3),
-            }
-            return json.dumps(metrics, indent=2)
-        except Exception as e:
-            return f"Error collecting metrics: {e}"
-
-    def _execute_shell_command(self, command: str) -> str:
-        """Execute shell command safely"""
-        if not self._is_safe_command(command):
-            return "Command rejected: potentially unsafe"
-
-        try:
-            result = subprocess.run(command.split(), capture_output=True, text=True, timeout=30)
-            return f"Exit code: {result.returncode}\nOutput: {result.stdout}\nError: {result.stderr}"
-        except Exception as e:
-            return f"Execution failed: {e}"
-
-    def _optimize_workload(self, parameters: str) -> str:
-        """Optimize workload parameters"""
-        # Placeholder for workload optimization logic
-        return f"Optimization recommendations for: {parameters}"
+# =============================================================================
+# Enhanced GPU Runtime Manager
+# =============================================================================
 
 
-# Enhanced GPU Runtime Manager with AI Integration
 class EnhancedGPURuntimeManager:
+    """Enhanced GPU runtime with MLX and AI integration"""
+
     def __init__(self, ai_config: Dict[str, Any] = None):
-        # Initialize base GPU manager
+        # Initialize base GPU manager from openruntime.py
         from openruntime import GPURuntimeManager
 
         self.gpu_manager = GPURuntimeManager()
 
-        # Initialize AI agent manager
+        # Initialize MLX manager
+        self.mlx_manager = MLXRuntimeManager()
+
+        # Initialize AI manager
         self.ai_manager = AIAgentManager(ai_config)
 
-        # Enhanced monitoring
+        # Enhanced metrics and insights
         self.ai_insights: List[Dict[str, Any]] = []
-        self.optimization_history: List[Dict[str, Any]] = []
 
-        logger.info("Enhanced GPU Runtime Manager initialized with AI capabilities")
+        logger.info("Enhanced GPU Runtime Manager initialized")
 
-    async def execute_ai_enhanced_task(self, task_request, ai_task: Optional[AITaskRequest] = None):
-        """Execute task with AI enhancement"""
+    async def execute_ai_enhanced_task(self, task_request: TaskRequest, ai_task: Optional[AITaskRequest] = None):
+        """Execute a task with optional AI enhancement"""
         start_time = time.time()
 
-        # Execute base GPU task
+        # Execute the base GPU task
         gpu_result = await self.gpu_manager.execute_task(task_request)
 
-        # If AI task provided, execute AI analysis
+        # If AI task is provided, execute it as well
+        ai_result = None
         if ai_task:
             ai_result = await self.ai_manager.execute_ai_task(ai_task)
 
-            # Combine results
-            enhanced_result = {
-                "gpu_task": gpu_result.dict(),
-                "ai_analysis": ai_result,
-                "execution_time": time.time() - start_time,
-                "timestamp": datetime.now().isoformat(),
-            }
+        # Combine results
+        combined_result = {
+            "task_id": task_request.task_id,
+            "gpu_result": asdict(gpu_result) if hasattr(gpu_result, "__dict__") else gpu_result,
+            "ai_result": ai_result,
+            "execution_time": time.time() - start_time,
+            "enhanced": ai_result is not None,
+        }
 
-            # Store AI insights
-            self.ai_insights.append(enhanced_result)
+        # Store insights
+        if ai_result and "error" not in ai_result:
+            self.ai_insights.append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "task_type": task_request.operation,
+                    "ai_workflow": ai_task.workflow_type.value if ai_task else None,
+                    "insight": ai_result.get("result", {}).get("response", ""),
+                    "performance_metrics": gpu_result.metrics if hasattr(gpu_result, "metrics") else {},
+                }
+            )
 
-            return enhanced_result
-
-        return gpu_result.dict()
+        return combined_result
 
     async def get_ai_performance_insights(self) -> Dict[str, Any]:
-        """Get AI-driven performance insights"""
+        """Get AI-generated performance insights"""
         if not self.ai_insights:
-            return {"message": "No AI insights available"}
+            return {"message": "No AI insights available yet"}
 
-        # Analyze recent performance data
-        recent_insights = self.ai_insights[-10:]  # Last 10 insights
+        # Get recent metrics
+        recent_metrics = self.gpu_manager.metrics_history[-10:] if hasattr(self.gpu_manager, "metrics_history") else []
 
-        # Generate AI-driven recommendations
-        ai_task = AITaskRequest(
-            workflow_type=WorkflowType.COMPUTE_OPTIMIZATION,
-            prompt="Analyze recent performance data and provide optimization recommendations",
-            context={"recent_insights": recent_insights},
+        # Create analysis task
+        analysis_task = AITaskRequest(
+            workflow_type=WorkflowType.SYSTEM_ANALYSIS,
+            prompt=f"""Analyze the following GPU performance data and provide optimization recommendations:
+
+Recent Performance Metrics:
+{json.dumps([asdict(m) for m in recent_metrics], indent=2, default=str)}
+
+AI Insights History:
+{json.dumps(self.ai_insights[-5:], indent=2)}
+
+Provide specific recommendations for:
+1. Performance optimization
+2. Resource utilization improvements
+3. Potential bottlenecks
+4. Configuration suggestions
+""",
+            agent_role=AgentRole.PERFORMANCE_OPTIMIZER,
         )
 
-        recommendations = await self.ai_manager.execute_ai_task(ai_task)
+        analysis_result = await self.ai_manager.execute_ai_task(analysis_task)
 
         return {
+            "analysis": analysis_result,
+            "metrics_analyzed": len(recent_metrics),
             "insights_count": len(self.ai_insights),
-            "recent_performance": recent_insights,
-            "ai_recommendations": recommendations,
+            "timestamp": datetime.now().isoformat(),
         }
 
 
 # =============================================================================
-# Enhanced FastAPI Application
+# Initialize Global Runtime
 # =============================================================================
 
-# Initialize enhanced components
+# Global runtime instance
 enhanced_runtime = EnhancedGPURuntimeManager()
-security = HTTPBearer()
+
+# =============================================================================
+# WebSocket Manager
+# =============================================================================
 
 
-# Lifespan context manager for startup/shutdown
+class WebSocketManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        logger.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+        logger.info(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
+
+    async def broadcast(self, message: dict):
+        if self.active_connections:
+            disconnected = []
+            for connection in self.active_connections:
+                try:
+                    await connection.send_json(message)
+                except:
+                    disconnected.append(connection)
+
+            for conn in disconnected:
+                self.disconnect(conn)
+
+
+websocket_manager = WebSocketManager()
+
+# =============================================================================
+# FastAPI Application
+# =============================================================================
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    """Manage application lifespan"""
     logger.info("OpenRuntime Enhanced starting up...")
+    logger.info(f"MLX Available: {MLX_AVAILABLE}")
     logger.info(f"AI Agents: {len(enhanced_runtime.ai_manager.agents)}")
-    logger.info(f"GPU Devices: {len(enhanced_runtime.gpu_manager.devices)}")
-    logger.info(f"OpenAI: {'Available' if OPENAI_AVAILABLE else 'Not Available'}")
-    logger.info(f"LangChain: {'Available' if LANGCHAIN_AVAILABLE else 'Not Available'}")
-    logger.info(f"Shell-GPT: {'Available' if SHELLGPT_AVAILABLE else 'Not Available'}")
-    logger.info("System ready for AI-enhanced GPU computing")
-
+    logger.info("System ready")
     yield
-
-    # Shutdown
     logger.info("OpenRuntime Enhanced shutting down...")
-    enhanced_runtime.gpu_manager.executor.shutdown(wait=True)
 
 
-# Create enhanced FastAPI app
 app = FastAPI(
     title="OpenRuntime Enhanced",
     description="Advanced GPU Runtime System with AI Integration",
-    version="2.0.0",
+    version=__version__,
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -765,53 +640,74 @@ app.add_middleware(
 )
 
 # =============================================================================
-# Enhanced API Endpoints
+# API Endpoints
 # =============================================================================
 
 
 @app.get("/")
 async def root():
-    """Enhanced root endpoint with AI status"""
+    """Root endpoint with system status"""
     return {
         "name": "OpenRuntime Enhanced",
-        "version": "2.0.0",
+        "version": __version__,
+        "author": __author__,
+        "email": __email__,
         "status": "running",
-        "ai_enabled": OPENAI_AVAILABLE,
-        "langchain_enabled": LANGCHAIN_AVAILABLE,
-        "shell_gpt_enabled": SHELLGPT_AVAILABLE,
-        "agents": len(enhanced_runtime.ai_manager.agents),
+        "mlx_available": MLX_AVAILABLE,
+        "ai_agents": len(enhanced_runtime.ai_manager.agents),
         "devices": len(enhanced_runtime.gpu_manager.devices),
-        "ai_insights": len(enhanced_runtime.ai_insights),
-        "websocket_available": True,
-        "websocket_endpoint": "/ws",
         "timestamp": datetime.now().isoformat(),
+    }
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "components": {
+            "gpu_manager": "operational",
+            "ai_manager": "operational" if enhanced_runtime.ai_manager.openai_client else "limited",
+            "mlx_manager": "operational" if MLX_AVAILABLE else "unavailable",
+        },
     }
 
 
 @app.post("/ai/tasks", response_model=dict)
 async def execute_ai_task(task: AITaskRequest):
-    """Execute AI task"""
-    try:
-        result = await enhanced_runtime.ai_manager.execute_ai_task(task)
-        return result
-    except asyncio.TimeoutError as e:
-        return {"task_id": task.task_id, "error": f"Task timed out: {str(e)}", "status": "timeout", "execution_time": 0}
-    except Exception as e:
-        logger.error(f"AI task execution failed: {e}")
-        return {"task_id": task.task_id, "error": str(e), "status": "failed", "execution_time": 0}
+    """Execute AI-powered task"""
+    logger.info(f"Executing AI task: {task.workflow_type.value}")
+    result = await enhanced_runtime.ai_manager.execute_ai_task(task)
+    return result
 
 
 @app.post("/ai/shell", response_model=dict)
 async def execute_shell_with_ai(request: ShellCommandRequest):
     """Execute shell command with AI assistance"""
-    ai_task = AITaskRequest(
-        workflow_type=WorkflowType.SHELL_AUTOMATION,
-        prompt=request.command,
-        context={"original_context": request.context, "safety_check": request.safety_check},
-    )
+    if request.use_ai:
+        ai_task = AITaskRequest(
+            workflow_type=WorkflowType.SHELL_AUTOMATION,
+            prompt=f"Generate and explain a safe shell command for: {request.command}",
+            context={"original_command": request.command, "context": request.context},
+        )
+        result = await enhanced_runtime.ai_manager.execute_ai_task(ai_task)
+        return result
+    else:
+        # Direct shell execution (with safety checks)
+        if request.safety_check and not enhanced_runtime.ai_manager._is_safe_command(request.command):
+            return {"error": "Command failed safety check", "command": request.command}
 
-    result = await enhanced_runtime.ai_manager.execute_ai_task(ai_task)
-    return result
+        try:
+            result = subprocess.run(request.command, shell=True, capture_output=True, text=True, timeout=request.timeout)
+            return {
+                "command": request.command,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "returncode": result.returncode,
+            }
+        except Exception as e:
+            return {"error": str(e), "command": request.command}
 
 
 @app.post("/ai/code", response_model=dict)
@@ -819,13 +715,16 @@ async def generate_code_with_ai(request: CodeGenerationRequest):
     """Generate code with AI assistance"""
     ai_task = AITaskRequest(
         workflow_type=WorkflowType.CODE_GENERATION,
-        prompt=f"Generate {request.language} code: {request.description}",
-        context={
-            "language": request.language,
-            "optimization_target": request.optimization_target,
-            "include_tests": request.include_tests,
-            **request.context,
-        },
+        prompt=f"""Generate {request.language} code for: {request.description}
+
+Requirements:
+- Language: {request.language}
+- Optimization target: {request.optimization_target}
+- Include tests: {request.include_tests}
+- Context: {json.dumps(request.context)}
+
+Provide complete, working code with explanations.""",
+        agent_role=AgentRole.CODE_GENERATOR,
     )
 
     result = await enhanced_runtime.ai_manager.execute_ai_task(ai_task)
@@ -834,11 +733,11 @@ async def generate_code_with_ai(request: CodeGenerationRequest):
 
 @app.get("/ai/agents")
 async def list_ai_agents():
-    """List all AI agents"""
-    agents = []
+    """List all available AI agents"""
+    agents_info = []
     for agent in enhanced_runtime.ai_manager.agents.values():
-        agents.append(asdict(agent))
-    return {"agents": agents}
+        agents_info.append(asdict(agent))
+    return {"agents": agents_info}
 
 
 @app.get("/ai/insights")
@@ -849,37 +748,37 @@ async def get_ai_insights():
 
 @app.post("/tasks/enhanced", response_model=dict)
 async def create_enhanced_task(gpu_task: dict, ai_task: Optional[AITaskRequest] = None):
-    """Create enhanced task with AI analysis"""
-    from openruntime import TaskRequest
-
+    """Create enhanced task with GPU and AI components"""
     # Convert dict to TaskRequest
     task_request = TaskRequest(**gpu_task)
-
     result = await enhanced_runtime.execute_ai_enhanced_task(task_request, ai_task)
     return result
 
 
-# =============================================================================
-# Original OpenRuntime Endpoints (for compatibility)
-# =============================================================================
-
-
+# Import remaining endpoints from base openruntime
 @app.get("/devices")
 async def list_devices():
-    """List available GPU devices"""
+    """List available devices"""
     devices = []
     for device in enhanced_runtime.gpu_manager.devices.values():
+        device_dict = asdict(device)
+        devices.append(device_dict)
+
+    # Add MLX device info
+    if MLX_AVAILABLE:
+        mlx_info = enhanced_runtime.mlx_manager.device_info
         devices.append(
             {
-                "id": device.id,
-                "name": device.name,
-                "type": device.type,
-                "memory_total": device.memory_total,
-                "memory_available": device.memory_available,
-                "compute_units": device.compute_units,
-                "is_available": device.is_available,
+                "id": "mlx_0",
+                "name": "MLX Metal Device",
+                "type": "mlx",
+                "memory_total": mlx_info.get("memory_limit", 0),
+                "memory_available": mlx_info.get("memory_limit", 0) - mlx_info.get("active_memory", 0),
+                "compute_units": 1,
+                "is_available": mlx_info.get("available", False),
             }
         )
+
     return {"devices": devices}
 
 
@@ -887,10 +786,13 @@ async def list_devices():
 async def get_system_metrics():
     """Get system metrics"""
     return {
-        "system": enhanced_runtime.ai_manager._get_system_metrics(),
-        "devices": len(enhanced_runtime.gpu_manager.devices),
-        "ai_agents": len(enhanced_runtime.ai_manager.agents),
-        "ai_insights": len(enhanced_runtime.ai_insights),
+        "gpu_metrics": (
+            enhanced_runtime.gpu_manager.metrics_history[-10:]
+            if hasattr(enhanced_runtime.gpu_manager, "metrics_history")
+            else []
+        ),
+        "mlx_info": enhanced_runtime.mlx_manager.device_info,
+        "ai_insights_count": len(enhanced_runtime.ai_insights),
         "timestamp": datetime.now().isoformat(),
     }
 
@@ -898,112 +800,100 @@ async def get_system_metrics():
 @app.get("/devices/{device_id}/metrics")
 async def get_device_metrics(device_id: str):
     """Get metrics for specific device"""
-    for device in enhanced_runtime.gpu_manager.devices.values():
-        if device.id == device_id:
-            return {
-                "device": {
-                    "id": device.id,
-                    "name": device.name,
-                    "type": device.type,
-                    "memory_total": device.memory_total,
-                    "memory_available": device.memory_available,
-                    "compute_units": device.compute_units,
-                    "is_available": device.is_available,
-                },
-                "timestamp": datetime.now().isoformat(),
-            }
-    raise HTTPException(status_code=404, detail="Device not found")
+    if device_id == "mlx_0":
+        return {"device_id": device_id, "metrics": enhanced_runtime.mlx_manager.device_info, "type": "mlx"}
+    else:
+        # Delegate to base GPU manager
+        metrics = [asdict(m) for m in enhanced_runtime.gpu_manager.metrics_history if m.device_id == device_id][-10:]
+        return {"device_id": device_id, "metrics": metrics, "count": len(metrics)}
 
 
 @app.post("/tasks", response_model=dict)
 async def create_task(task_request: dict):
-    """Create GPU task (original OpenRuntime compatibility)"""
-    from openruntime import TaskRequest
-
+    """Create and execute GPU task"""
     task = TaskRequest(**task_request)
     result = await enhanced_runtime.gpu_manager.execute_task(task)
-    return {
-        "task_id": result.task_id,
-        "status": result.status,
-        "result": result.result,
-        "metrics": result.metrics,
-        "error": result.error,
-        "execution_time": result.execution_time,
-    }
+
+    # Convert result to dict if needed
+    if hasattr(result, "__dict__"):
+        return asdict(result)
+    return result
 
 
 @app.get("/tasks")
 async def list_tasks():
-    """List all tasks"""
-    return {"tasks": [], "message": "Task history not implemented in enhanced version"}
+    """List active tasks"""
+    return {"active_tasks": list(enhanced_runtime.gpu_manager.active_tasks.keys())}
 
 
 @app.post("/benchmark")
 async def run_benchmark(benchmark_type: str = "compute"):
     """Run performance benchmark"""
-    benchmark_task = {"operation": "benchmark", "data": {"type": benchmark_type}, "priority": 1}
+    if benchmark_type == "mlx" and MLX_AVAILABLE:
+        # MLX-specific benchmark
+        try:
+            matrix_result = await enhanced_runtime.mlx_manager.matrix_multiply_mlx(1024)
+            nn_result = await enhanced_runtime.mlx_manager.neural_network_inference_mlx(512, 256, 10)
 
-    from openruntime import TaskRequest
-
-    task = TaskRequest(**benchmark_task)
-    result = await enhanced_runtime.gpu_manager.execute_task(task)
-    return {
-        "task_id": result.task_id,
-        "status": result.status,
-        "result": result.result,
-        "metrics": result.metrics,
-        "error": result.error,
-        "execution_time": result.execution_time,
-    }
-
-
-# =============================================================================
-# WebSocket Support
-# =============================================================================
+            return {
+                "benchmark_type": "mlx",
+                "results": {"matrix_multiply": matrix_result, "neural_network": nn_result},
+                "timestamp": datetime.now().isoformat(),
+            }
+        except Exception as e:
+            return {"error": f"MLX benchmark failed: {e}"}
+    else:
+        # Standard GPU benchmark
+        task_request = TaskRequest(operation="benchmark", data={"type": benchmark_type})
+        result = await enhanced_runtime.gpu_manager.execute_task(task_request)
+        return asdict(result) if hasattr(result, "__dict__") else result
 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates"""
-    await websocket.accept()
+    await websocket_manager.connect(websocket)
     try:
+        await websocket.send_json({"type": "connection_established", "timestamp": datetime.now().isoformat()})
+
         while True:
-            # Send periodic updates
-            update = {
-                "type": "system_update",
-                "timestamp": datetime.now().isoformat(),
-                "ai_agents": len(enhanced_runtime.ai_manager.agents),
-                "devices": len(enhanced_runtime.gpu_manager.devices),
-                "ai_insights": len(enhanced_runtime.ai_insights),
-            }
-            await websocket.send_json(update)
-            await asyncio.sleep(5)  # Send updates every 5 seconds
+            await asyncio.sleep(5)
+
+            # Send system status
+            await websocket.send_json(
+                {
+                    "type": "system_status",
+                    "data": {
+                        "active_devices": len(enhanced_runtime.gpu_manager.devices),
+                        "ai_agents": len(enhanced_runtime.ai_manager.agents),
+                        "mlx_available": MLX_AVAILABLE,
+                        "insights_count": len(enhanced_runtime.ai_insights),
+                    },
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
     finally:
-        await websocket.close()
+        websocket_manager.disconnect(websocket)
 
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="OpenRuntime Enhanced with AI")
+    parser = argparse.ArgumentParser(description="OpenRuntime Enhanced")
     parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
     parser.add_argument("--port", type=int, default=8001, help="Port to bind to")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
-    parser.add_argument("--log-level", default="info", choices=["debug", "info", "warning", "error"])
+    parser.add_argument("--log-level", default="info", help="Log level")
 
     args = parser.parse_args()
-    print("OpenRuntime Enhanced: AI-Powered GPU Runtime System")
-    print("=" * 60)
-    print(f"AI Agents: {len(enhanced_runtime.ai_manager.agents)}")
-    print(f"GPU Devices: {len(enhanced_runtime.gpu_manager.devices)}")
-    print(f"OpenAI: {'Available' if OPENAI_AVAILABLE else 'Not Available'}")
-    print(f"LangChain: {'Available' if LANGCHAIN_AVAILABLE else 'Not Available'}")
-    print(f"Shell-GPT: {'Available' if SHELLGPT_AVAILABLE else 'Not Available'}")
+
+    print(f"OpenRuntime Enhanced v{__version__}")
+    print(f"Author: {__author__} <{__email__}>")
     print(f"Server: http://{args.host}:{args.port}")
     print(f"API Docs: http://{args.host}:{args.port}/docs")
-    print("=" * 60)
 
     uvicorn.run(
         "openruntime_enhanced:app" if args.reload else app,

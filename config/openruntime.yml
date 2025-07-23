@@ -1,0 +1,32 @@
+# OpenRuntime Enhanced Configuration
+# Author: Nik Jois <nikjois@llamasearch.ai>
+
+server:
+  host: "0.0.0.0"
+  port: 8001
+  log_level: "info"
+  workers: 4
+
+ai:
+  openai_api_key: "${OPENAI_API_KEY}"
+  temperature: 0.7
+  max_tokens: 2048
+  max_concurrent_tasks: 20
+
+gpu:
+  fallback_to_cpu: true
+  cache_max_size: 1000
+  monitoring_enabled: true
+
+mlx:
+  enabled: true
+  memory_limit: "80%"
+
+security:
+  enable_rate_limiting: true
+  max_login_attempts: 5
+
+monitoring:
+  prometheus_enabled: true
+  metrics_port: 9090
+  log_metrics: true

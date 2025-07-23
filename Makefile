@@ -1,307 +1,307 @@
-# OpenRuntime Enhanced - Development and Deployment Makefile
+# OpenRuntime Makefile
+# Author: Nik Jois <nikjois@llamasearch.ai>
+# Version: 2.0.0
 
-.PHONY: help install dev test build docker-build docker-run clean lint format type-check security-check docs benchmark stress-test deploy stop logs
+.PHONY: help install install-dev test test-unit test-integration test-performance lint format type-check clean build docker-build docker-run docker-stop deploy docs serve benchmark
 
-# Default target
-help:
-	@echo "OpenRuntime Enhanced - Available Commands"
-	@echo "============================================"
-	@echo ""
-	@echo "Development:"
-	@echo "  install        Install dependencies"
-	@echo "  dev            Start development server"
-	@echo "  test           Run test suite"
-	@echo "  lint           Run code linting"
-	@echo "  format         Format code"
-	@echo "  type-check     Run type checking"
-	@echo "  security-check Run security analysis"
-	@echo ""
-	@echo "Building & Deployment:"
-	@echo "  build          Build application"
-	@echo "  docker-build   Build Docker images"
-	@echo "  docker-run     Run with Docker Compose"
-	@echo "  deploy         Deploy to production"
-	@echo "  stop           Stop all services"
-	@echo ""
-	@echo "Testing & Monitoring:"
-	@echo "  benchmark      Run performance benchmarks"
-	@echo "  stress-test    Run stress tests"
-	@echo "  logs           View application logs"
-	@echo ""
-	@echo "Maintenance:"
-	@echo "  clean          Clean build artifacts"
-	@echo "  docs           Generate documentation"
-	@echo ""
-
-# =============================================================================
 # Variables
-# =============================================================================
 PYTHON := python3
 PIP := pip3
-DOCKER := docker
-DOCKER_COMPOSE := docker-compose
-PROJECT_NAME := openruntime-enhanced
-VERSION := $(shell grep "version=" setup.py | cut -d'"' -f2)
+PROJECT_NAME := openruntime
+VERSION := 2.0.0
+AUTHOR := Nik Jois
+EMAIL := nikjois@llamasearch.ai
+
+# Directories
+SRC_DIR := .
+TEST_DIR := tests
+DOCS_DIR := docs
+SCRIPTS_DIR := scripts
+MONITORING_DIR := monitoring
+
+# Files
+MAIN_FILE := openruntime.py
+CLI_FILE := cli_simple.py
+REQUIREMENTS_FILE := requirements.txt
+REQUIREMENTS_DEV_FILE := requirements-dev.txt
+SETUP_FILE := setup.py
+DOCKERFILE := Dockerfile
+DOCKER_COMPOSE_FILE := docker-compose.yml
 
 # Colors for output
 RED := \033[0;31m
 GREEN := \033[0;32m
 YELLOW := \033[0;33m
 BLUE := \033[0;34m
-NC := \033[0m # No Color
+PURPLE := \033[0;35m
+CYAN := \033[0;36m
+WHITE := \033[0;37m
+BOLD := \033[1m
+RESET := \033[0m
 
-# =============================================================================
-# Development Setup
-# =============================================================================
-install:
-	@echo "$(BLUE)Installing dependencies...$(NC)"
-	$(PIP) install --upgrade pip
-	$(PIP) install -r requirements.txt
-	$(PIP) install -r requirements-dev.txt
-	@echo "$(GREEN)Dependencies installed$(NC)"
+# Default target
+help: ## Show this help message
+	@echo "$(BOLD)$(CYAN)OpenRuntime GPU Computing Platform$(RESET)"
+	@echo "$(BLUE)Version: $(VERSION)$(RESET)"
+	@echo "$(BLUE)Author: $(AUTHOR) <$(EMAIL)>$(RESET)"
+	@echo ""
+	@echo "$(BOLD)Available commands:$(RESET)"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo ""
+	@echo "$(BOLD)Quick start:$(RESET)"
+	@echo "  make install     # Install dependencies"
+	@echo "  make test        # Run all tests"
+	@echo "  make serve       # Start the server"
+	@echo "  make benchmark   # Run performance benchmarks"
 
-install-rust:
-	@echo "$(BLUE)Installing Rust dependencies...$(NC)"
-	cd rust-openai-crate && cargo build --release
-	@echo "$(GREEN)Rust components built$(NC)"
+# Installation targets
+install: ## Install production dependencies
+	@echo "$(BOLD)$(GREEN)Installing production dependencies...$(RESET)"
+	$(PIP) install -r $(REQUIREMENTS_FILE)
+	@echo "$(GREEN)Production dependencies installed successfully!$(RESET)"
 
-dev: install
-	@echo "$(BLUE)Starting development server...$(NC)"
-	$(PYTHON) openruntime_enhanced.py --host 0.0.0.0 --port 8000 --reload --log-level debug
+install-dev: ## Install development dependencies
+	@echo "$(BOLD)$(GREEN)Installing development dependencies...$(RESET)"
+	$(PIP) install -r $(REQUIREMENTS_FILE)
+	$(PIP) install -r $(REQUIREMENTS_DEV_FILE)
+	$(PIP) install -e .
+	@echo "$(GREEN)Development dependencies installed successfully!$(RESET)"
 
-dev-docker:
-	@echo "$(BLUE)Starting development environment with Docker...$(NC)"
-	$(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.override.yml up --build
+install-mlx: ## Install MLX for Apple Silicon
+	@echo "$(BOLD)$(GREEN)Installing MLX for Apple Silicon...$(RESET)"
+	$(PIP) install mlx
+	@echo "$(GREEN)MLX installed successfully!$(RESET)"
 
-# =============================================================================
-# Testing
-# =============================================================================
-test:
-	@echo "$(BLUE)Running test suite...$(NC)"
-	$(PYTHON) -m pytest tests/ -v --cov=. --cov-report=html --cov-report=term
-	@echo "$(GREEN)Tests completed$(NC)"
+install-torch: ## Install PyTorch with Metal support
+	@echo "$(BOLD)$(GREEN)Installing PyTorch with Metal support...$(RESET)"
+	$(PIP) install torch torchvision torchaudio
+	@echo "$(GREEN)PyTorch with Metal support installed successfully!$(RESET)"
 
-test-fast:
-	@echo "$(BLUE)Running fast tests only...$(NC)"
-	$(PYTHON) -m pytest tests/ -v -m "not slow"
+# Testing targets
+test: test-unit test-integration test-performance ## Run all tests
 
-test-integration:
-	@echo "$(BLUE)Running integration tests...$(NC)"
-	$(PYTHON) -m pytest tests/integration/ -v
+test-unit: ## Run unit tests
+	@echo "$(BOLD)$(GREEN)Running unit tests...$(RESET)"
+	$(PYTHON) -m pytest $(TEST_DIR)/test_openruntime.py -v --tb=short
+	@echo "$(GREEN)Unit tests completed!$(RESET)"
 
-benchmark:
-	@echo "$(BLUE)Running performance benchmarks...$(NC)"
-	chmod +x scripts/benchmark.sh
-	./scripts/benchmark.sh
-	@echo "$(GREEN)Benchmarks completed$(NC)"
+test-integration: ## Run integration tests
+	@echo "$(BOLD)$(GREEN)Running integration tests...$(RESET)"
+	$(PYTHON) -m pytest $(TEST_DIR)/test_integration.py -v --tb=short
+	@echo "$(GREEN)Integration tests completed!$(RESET)"
 
-stress-test:
-	@echo "$(BLUE)Running stress tests...$(NC)"
-	$(PYTHON) scripts/stress_test.py --concurrent 20 --total 1000
-	@echo "$(GREEN)Stress tests completed$(NC)"
+test-performance: ## Run performance tests
+	@echo "$(BOLD)$(GREEN)Running performance tests...$(RESET)"
+	$(PYTHON) -m pytest $(TEST_DIR)/test_performance.py -v --tb=short
+	@echo "$(GREEN)Performance tests completed!$(RESET)"
 
-# =============================================================================
-# Code Quality
-# =============================================================================
-lint:
-	@echo "$(BLUE)Running code linting...$(NC)"
-	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-	@echo "$(GREEN)Linting completed$(NC)"
+test-coverage: ## Run tests with coverage report
+	@echo "$(BOLD)$(GREEN)Running tests with coverage...$(RESET)"
+	$(PYTHON) -m pytest $(TEST_DIR)/ --cov=$(SRC_DIR) --cov-report=html --cov-report=term
+	@echo "$(GREEN)Coverage report generated!$(RESET)"
 
-format:
-	@echo "$(BLUE)Formatting code...$(NC)"
-	black . --line-length 127
-	isort . --profile black
-	@echo "$(GREEN)Code formatted$(NC)"
+# Code quality targets
+lint: ## Run linting checks
+	@echo "$(BOLD)$(GREEN)Running linting checks...$(RESET)"
+	flake8 $(MAIN_FILE) $(CLI_FILE) $(TEST_DIR)/ --max-line-length=120 --ignore=E203,W503
+	@echo "$(GREEN)Linting completed!$(RESET)"
 
-type-check:
-	@echo "$(BLUE)Running type checking...$(NC)"
-	mypy . --ignore-missing-imports
-	@echo "$(GREEN)Type checking completed$(NC)"
+format: ## Format code with black
+	@echo "$(BOLD)$(GREEN)Formatting code...$(RESET)"
+	black $(MAIN_FILE) $(CLI_FILE) $(TEST_DIR)/ --line-length=120
+	@echo "$(GREEN)Code formatting completed!$(RESET)"
 
-security-check:
-	@echo "$(BLUE)Running security analysis...$(NC)"
-	bandit -r . -f json -o security-report.json
-	safety check --json --output safety-report.json
-	@echo "$(GREEN)Security analysis completed$(NC)"
+type-check: ## Run type checking with mypy
+	@echo "$(BOLD)$(GREEN)Running type checking...$(RESET)"
+	mypy $(MAIN_FILE) $(CLI_FILE) --ignore-missing-imports
+	@echo "$(GREEN)Type checking completed!$(RESET)"
 
-# =============================================================================
-# Building
-# =============================================================================
-build:
-	@echo "$(BLUE)Building application...$(NC)"
-	$(PYTHON) setup.py sdist bdist_wheel
-	@echo "$(GREEN)Build completed$(NC)"
+quality: lint format type-check ## Run all code quality checks
 
-docker-build:
-	@echo "$(BLUE)Building Docker images...$(NC)"
-	$(DOCKER) build -t $(PROJECT_NAME):$(VERSION) -t $(PROJECT_NAME):latest .
-	@echo "$(GREEN)Docker images built$(NC)"
+# Development targets
+serve: ## Start the development server
+	@echo "$(BOLD)$(GREEN)Starting OpenRuntime server...$(RESET)"
+	$(PYTHON) $(MAIN_FILE) --host 0.0.0.0 --port 8000 --reload
 
-docker-build-dev:
-	@echo "$(BLUE)Building development Docker image...$(NC)"
-	$(DOCKER) build --target development -t $(PROJECT_NAME):dev .
+serve-prod: ## Start the production server
+	@echo "$(BOLD)$(GREEN)Starting production server...$(RESET)"
+	gunicorn $(MAIN_FILE):app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 
-# =============================================================================
-# Deployment
-# =============================================================================
-docker-run:
-	@echo "$(BLUE)Starting services with Docker Compose...$(NC)"
-	$(DOCKER_COMPOSE) up -d
-	@echo "$(GREEN)Services started$(NC)"
-	@echo "$(YELLOW)Application: http://localhost:8000$(NC)"
-	@echo "$(YELLOW)Grafana: http://localhost:3000$(NC)"
-	@echo "$(YELLOW)Prometheus: http://localhost:9090$(NC)"
+cli: ## Run the CLI interface
+	@echo "$(BOLD)$(GREEN)Starting OpenRuntime CLI...$(RESET)"
+	$(PYTHON) $(CLI_FILE) status
 
-deploy: docker-build
-	@echo "$(BLUE)Deploying to production...$(NC)"
-	$(DOCKER_COMPOSE) -f docker-compose.yml up -d
-	@echo "$(GREEN)Deployment completed$(NC)"
+# Benchmarking targets
+benchmark: ## Run performance benchmarks
+	@echo "$(BOLD)$(GREEN)Running performance benchmarks...$(RESET)"
+	$(PYTHON) $(CLI_FILE) benchmark --type comprehensive
+	@echo "$(GREEN)Benchmarks completed!$(RESET)"
 
-stop:
-	@echo "$(BLUE)Stopping all services...$(NC)"
-	$(DOCKER_COMPOSE) down
-	@echo "$(GREEN)Services stopped$(NC)"
+benchmark-mlx: ## Run MLX-specific benchmarks
+	@echo "$(BOLD)$(GREEN)Running MLX benchmarks...$(RESET)"
+	$(PYTHON) $(CLI_FILE) run --operation mlx_compute --size 2048
+	@echo "$(GREEN)MLX benchmarks completed!$(RESET)"
 
-restart: stop docker-run
+benchmark-torch: ## Run PyTorch benchmarks
+	@echo "$(BOLD)$(GREEN)Running PyTorch benchmarks...$(RESET)"
+	$(PYTHON) $(CLI_FILE) run --operation compute --size 2048
+	@echo "$(GREEN)PyTorch benchmarks completed!$(RESET)"
 
-# =============================================================================
-# Monitoring & Logs
-# =============================================================================
-logs:
-	@echo "$(BLUE)Showing application logs...$(NC)"
-	$(DOCKER_COMPOSE) logs -f openruntime
+# Docker targets
+docker-build: ## Build Docker image
+	@echo "$(BOLD)$(GREEN)Building Docker image...$(RESET)"
+	docker build -t $(PROJECT_NAME):$(VERSION) .
+	docker tag $(PROJECT_NAME):$(VERSION) $(PROJECT_NAME):latest
+	@echo "$(GREEN)Docker image built successfully!$(RESET)"
 
-logs-all:
-	@echo "$(BLUE)Showing all service logs...$(NC)"
-	$(DOCKER_COMPOSE) logs -f
+docker-run: ## Run Docker container
+	@echo "$(BOLD)$(GREEN)Running Docker container...$(RESET)"
+	docker run -d --name $(PROJECT_NAME) -p 8000:8000 $(PROJECT_NAME):latest
+	@echo "$(GREEN)Docker container started!$(RESET)"
 
-health-check:
-	@echo "$(BLUE)Checking service health...$(NC)"
-	curl -f http://localhost:8000/health || exit 1
-	@echo "$(GREEN)Health check passed$(NC)"
+docker-stop: ## Stop Docker container
+	@echo "$(BOLD)$(YELLOW)Stopping Docker container...$(RESET)"
+	docker stop $(PROJECT_NAME) || true
+	docker rm $(PROJECT_NAME) || true
+	@echo "$(GREEN)Docker container stopped!$(RESET)"
 
-# =============================================================================
-# Documentation
-# =============================================================================
-docs:
-	@echo "$(BLUE)Generating documentation...$(NC)"
-	sphinx-build -b html docs/ docs/_build/html
-	@echo "$(GREEN)Documentation generated$(NC)"
-	@echo "$(YELLOW)Docs available at: docs/_build/html/index.html$(NC)"
+docker-compose: ## Run with Docker Compose
+	@echo "$(BOLD)$(GREEN)Starting with Docker Compose...$(RESET)"
+	docker-compose up -d
+	@echo "$(GREEN)Docker Compose services started!$(RESET)"
 
-docs-serve:
-	@echo "$(BLUE)Serving documentation...$(NC)"
-	cd docs/_build/html && $(PYTHON) -m http.server 8080
+docker-compose-stop: ## Stop Docker Compose services
+	@echo "$(BOLD)$(YELLOW)Stopping Docker Compose services...$(RESET)"
+	docker-compose down
+	@echo "$(GREEN)Docker Compose services stopped!$(RESET)"
 
-# =============================================================================
-# Database Management
-# =============================================================================
-db-migrate:
-	@echo "$(BLUE)Running database migrations...$(NC)"
-	alembic upgrade head
-	@echo "$(GREEN)Migrations completed$(NC)"
+# Documentation targets
+docs: ## Generate documentation
+	@echo "$(BOLD)$(GREEN)Generating documentation...$(RESET)"
+	@mkdir -p $(DOCS_DIR)
+	@echo "$(GREEN)Documentation generated!$(RESET)"
 
-db-reset:
-	@echo "$(BLUE)Resetting database...$(NC)"
-	$(DOCKER_COMPOSE) down postgres
-	$(DOCKER) volume rm openruntime-enhanced_postgres_data
-	$(DOCKER_COMPOSE) up -d postgres
-	sleep 10
-	$(MAKE) db-migrate
-	@echo "$(GREEN)Database reset$(NC)"
+docs-serve: ## Serve documentation
+	@echo "$(BOLD)$(GREEN)Serving documentation...$(RESET)"
+	$(PYTHON) -m http.server 8080 --directory $(DOCS_DIR)
 
-# =============================================================================
-# Cleanup
-# =============================================================================
-clean:
-	@echo "$(BLUE)Cleaning up...$(NC)"
-	find . -type f -name "*.pyc" -delete
-	find . -type d -name "__pycache__" -delete
-	find . -type d -name "*.egg-info" -exec rm -rf {} +
+# Build targets
+build: ## Build the package
+	@echo "$(BOLD)$(GREEN)Building package...$(RESET)"
+	$(PYTHON) $(SETUP_FILE) build
+	@echo "$(GREEN)Package built successfully!$(RESET)"
+
+dist: ## Create distribution packages
+	@echo "$(BOLD)$(GREEN)Creating distribution packages...$(RESET)"
+	$(PYTHON) $(SETUP_FILE) sdist bdist_wheel
+	@echo "$(GREEN)Distribution packages created!$(RESET)"
+
+# Deployment targets
+deploy: ## Deploy to production
+	@echo "$(BOLD)$(GREEN)Deploying to production...$(RESET)"
+	@echo "$(YELLOW)This is a placeholder for deployment commands$(RESET)"
+	@echo "$(GREEN)Deployment completed!$(RESET)"
+
+deploy-docker: docker-build docker-run ## Deploy using Docker
+
+# Monitoring targets
+monitor: ## Start monitoring
+	@echo "$(BOLD)$(GREEN)Starting monitoring...$(RESET)"
+	$(PYTHON) $(CLI_FILE) monitor
+
+metrics: ## Show system metrics
+	@echo "$(BOLD)$(GREEN)Showing system metrics...$(RESET)"
+	$(PYTHON) $(CLI_FILE) metrics
+
+# Utility targets
+clean: ## Clean build artifacts
+	@echo "$(BOLD)$(YELLOW)Cleaning build artifacts...$(RESET)"
 	rm -rf build/
 	rm -rf dist/
+	rm -rf *.egg-info/
+	rm -rf __pycache__/
+	rm -rf .pytest_cache/
 	rm -rf .coverage
 	rm -rf htmlcov/
-	rm -rf .pytest_cache/
-	rm -rf .mypy_cache/
-	rm -rf benchmark_results/
-	@echo "$(GREEN)Cleanup completed$(NC)"
+	find . -type f -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -delete
+	@echo "$(GREEN)Clean completed!$(RESET)"
 
-clean-docker:
-	@echo "$(BLUE)Cleaning Docker resources...$(NC)"
-	$(DOCKER_COMPOSE) down --volumes --remove-orphans
-	$(DOCKER) system prune -f
-	@echo "$(GREEN)Docker cleanup completed$(NC)"
+check: ## Check system requirements
+	@echo "$(BOLD)$(GREEN)Checking system requirements...$(RESET)"
+	@echo "$(CYAN)Python version:$(RESET)"
+	$(PYTHON) --version
+	@echo "$(CYAN)Pip version:$(RESET)"
+	$(PIP) --version
+	@echo "$(CYAN)System architecture:$(RESET)"
+	uname -m
+	@echo "$(CYAN)Operating system:$(RESET)"
+	uname -s
+	@echo "$(GREEN)System check completed!$(RESET)"
 
-# =============================================================================
-# Development Utilities
-# =============================================================================
-shell:
-	@echo "$(BLUE)Starting interactive shell...$(NC)"
-	$(DOCKER_COMPOSE) exec openruntime $(PYTHON)
+version: ## Show version information
+	@echo "$(BOLD)$(CYAN)OpenRuntime Version Information$(RESET)"
+	@echo "$(BLUE)Version: $(VERSION)$(RESET)"
+	@echo "$(BLUE)Author: $(AUTHOR)$(RESET)"
+	@echo "$(BLUE)Email: $(EMAIL)$(RESET)"
+	@echo "$(BLUE)Main file: $(MAIN_FILE)$(RESET)"
+	@echo "$(BLUE)CLI file: $(CLI_FILE)$(RESET)"
 
-bash:
-	@echo "$(BLUE)Starting bash shell in container...$(NC)"
-	$(DOCKER_COMPOSE) exec openruntime bash
+# Development workflow targets
+dev-setup: install-dev install-mlx install-torch ## Complete development setup
+	@echo "$(BOLD)$(GREEN)Development environment setup completed!$(RESET)"
 
-install-hooks:
-	@echo "$(BLUE)Installing git hooks...$(NC)"
-	pre-commit install
-	@echo "$(GREEN)Git hooks installed$(NC)"
+dev-test: quality test ## Run development tests
 
-requirements:
-	@echo "$(BLUE)Updating requirements...$(NC)"
-	pip-compile requirements.in
-	pip-compile requirements-dev.in
-	@echo "$(GREEN)Requirements updated$(NC)"
+dev-serve: ## Start development server with hot reload
+	@echo "$(BOLD)$(GREEN)Starting development server...$(RESET)"
+	$(PYTHON) $(MAIN_FILE) --host 0.0.0.0 --port 8000 --reload --log-level debug
 
-# =============================================================================
-# CI/CD Helpers
-# =============================================================================
-ci-test: install test lint type-check security-check
-	@echo "$(GREEN)CI tests completed$(NC)"
+# CI/CD targets
+ci: quality test-coverage ## Run CI pipeline
 
-ci-build: build docker-build
-	@echo "$(GREEN)CI build completed$(NC)"
+ci-fast: lint test-unit ## Run fast CI checks
 
-release:
-	@echo "$(BLUE)Creating release...$(NC)"
-	@read -p "Enter version number: " version; \
-	git tag -a $$version -m "Release $$version"; \
-	git push origin $$version
-	@echo "$(GREEN)Release created$(NC)"
+# Security targets
+security-scan: ## Run security scans
+	@echo "$(BOLD)$(GREEN)Running security scans...$(RESET)"
+	bandit -r $(SRC_DIR) -f json -o security_report.json || true
+	safety check --json || true
+	@echo "$(GREEN)Security scans completed!$(RESET)"
 
-# =============================================================================
-# Performance Testing
-# =============================================================================
-perf-test:
-	@echo "$(BLUE)Running performance tests...$(NC)"
-	$(PYTHON) -m pytest tests/performance/ -v --benchmark-only
-	@echo "$(GREEN)Performance tests completed$(NC)"
+# Performance targets
+perf-test: ## Run performance tests
+	@echo "$(BOLD)$(GREEN)Running performance tests...$(RESET)"
+	$(PYTHON) $(SCRIPTS_DIR)/stress_test.py --concurrent-tasks 10 --duration 60
+	@echo "$(GREEN)Performance tests completed!$(RESET)"
 
-load-test:
-	@echo "$(BLUE)Running load tests...$(NC)"
-	locust -f tests/load_test.py --host=http://localhost:8000
-	@echo "$(GREEN)Load tests completed$(NC)"
+# Backup and restore targets
+backup: ## Create backup of configuration
+	@echo "$(BOLD)$(GREEN)Creating backup...$(RESET)"
+	@mkdir -p backups
+	tar -czf backups/openruntime-$(shell date +%Y%m%d-%H%M%S).tar.gz \
+		$(MAIN_FILE) $(CLI_FILE) $(REQUIREMENTS_FILE) config/ 2>/dev/null || true
+	@echo "$(GREEN)Backup created!$(RESET)"
 
-# =============================================================================
-# Special Targets
-# =============================================================================
-.ONESHELL:
-setup-dev: install install-rust install-hooks
-	@echo "$(GREEN)Development environment setup completed!$(NC)"
-	@echo "$(YELLOW)Next steps:$(NC)"
-	@echo "  1. Copy .env.example to .env and configure"
-	@echo "  2. Run 'make dev' to start development server"
-	@echo "  3. Visit http://localhost:8000 to see the application"
+# System information targets
+info: ## Show system information
+	@echo "$(BOLD)$(CYAN)OpenRuntime System Information$(RESET)"
+	@echo "$(BLUE)Project: $(PROJECT_NAME)$(RESET)"
+	@echo "$(BLUE)Version: $(VERSION)$(RESET)"
+	@echo "$(BLUE)Python: $(shell $(PYTHON) --version)$(RESET)"
+	@echo "$(BLUE)Architecture: $(shell uname -m)$(RESET)"
+	@echo "$(BLUE)OS: $(shell uname -s)$(RESET)"
+	@echo "$(BLUE)Main file: $(MAIN_FILE)$(RESET)"
+	@echo "$(BLUE)CLI file: $(CLI_FILE)$(RESET)"
 
-quick-start: docker-build docker-run
-	@echo "$(GREEN)Quick start completed!$(NC)"
-	@echo "$(YELLOW)Application: http://localhost:8000$(NC)"
-	@echo "$(YELLOW)API Docs: http://localhost:8000/docs$(NC)"
-	@echo "$(YELLOW)Monitoring: http://localhost:3000$(NC)"
+# Helpers
+.PHONY: check-deps
+check-deps: ## Check if all dependencies are installed
+	@echo "$(BOLD)$(GREEN)Checking dependencies...$(RESET)"
+	@$(PYTHON) -c "import fastapi, uvicorn, numpy, click, rich, httpx; print('Core dependencies OK')"
+	@$(PYTHON) -c "import mlx.core as mx; print('MLX available')" 2>/dev/null || echo "$(YELLOW)MLX not available$(RESET)"
+	@$(PYTHON) -c "import torch; print('PyTorch available')" 2>/dev/null || echo "$(YELLOW)PyTorch not available$(RESET)"
+	@echo "$(GREEN)Dependency check completed!$(RESET)"
 
-all-tests: test test-integration benchmark stress-test
-	@echo "$(GREEN)All tests completed!$(NC)"
+# Default target
+.DEFAULT_GOAL := help

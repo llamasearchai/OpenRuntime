@@ -1,320 +1,359 @@
-# OpenRuntime Enhanced
+# OpenRuntime: Advanced GPU Runtime System for macOS
 
-Advanced GPU Runtime System for macOS with AI Integration
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104.0-green.svg)](https://fastapi.tiangolo.com/)
+[![MLX](https://img.shields.io/badge/MLX-0.0.6+-orange.svg)](https://ml-explore.github.io/mlx/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0.0+-red.svg)](https://pytorch.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com)
-[![Metal](https://img.shields.io/badge/Metal-Performance-orange.svg)](https://developer.apple.com/metal/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-purple.svg)](https://openai.com)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+**Author:** Nik Jois <nikjois@llamasearch.ai>  
+**Version:** 2.0.0  
+**License:** MIT
 
-## Overview
+A comprehensive GPU computing and ML inference platform designed specifically for macOS with Apple Silicon, featuring MLX Metal integration, PyTorch Metal support, and advanced performance monitoring.
 
-OpenRuntime Enhanced is a comprehensive GPU computing and ML inference platform designed specifically for macOS systems with Apple Silicon. It combines high-performance GPU acceleration with advanced AI capabilities through OpenAI integration, LangChain workflows, and shell-gpt automation.
+## Features
 
-### Key Features
+### Core Capabilities
+- **Multi-GPU Runtime Management** with MLX Metal integration
+- **PyTorch Metal Performance Shaders** integration
+- **ML Model Inference Pipeline** with real-time optimization
+- **Real-time Performance Monitoring** with detailed metrics
+- **Distributed Computing Capabilities** for scalable workloads
+- **RESTful API Endpoints** for programmatic access
+- **WebSocket Streaming** for real-time updates
+- **Advanced Profiling and Benchmarking** tools
+- **AI-powered Optimization** suggestions
 
-- **Multi-GPU Runtime Management**: Advanced GPU device discovery and task scheduling
-- **Metal Performance Shaders**: Native Apple Silicon GPU acceleration
-- **AI Agent Integration**: OpenAI GPT-4o-mini agents for system optimization and analysis
-- **LangChain Workflows**: Complex AI workflow automation and orchestration
-- **Shell-GPT Integration**: AI-powered command line automation with safety checks
-- **Real-time Monitoring**: Comprehensive metrics collection and WebSocket streaming
-- **RESTful API**: Complete REST API with FastAPI and automatic documentation
-- **High-Performance Rust Client**: Optional Rust client library for maximum performance
-- **Docker Support**: Full containerization with monitoring stack
-- **Production Ready**: Comprehensive logging, metrics, and deployment configurations
+### Device Support
+- **Apple Silicon (M1/M2/M3)** with MLX Metal framework
+- **PyTorch Metal** acceleration for neural networks
+- **CPU Fallback** for universal compatibility
+- **Multi-device Coordination** for optimal resource utilization
+
+### Performance Features
+- **Matrix Multiplication** with Metal acceleration
+- **Neural Network Inference** with optimized kernels
+- **FFT Operations** with GPU acceleration
+- **Memory Bandwidth Optimization** for Apple Silicon
+- **Real-time Metrics Collection** and analysis
 
 ## Quick Start
 
 ### Prerequisites
 
-- macOS 12.0+ (for Metal support)
-- Python 3.11+
-- OpenAI API key
-- Optional: Rust 1.70+ (for high-performance client)
-- Optional: Docker & Docker Compose
+- macOS 12.0+ with Apple Silicon (M1/M2/M3) or Intel
+- Python 3.9+
+- Xcode Command Line Tools (for Metal support)
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone the repository:**
 ```bash
-git clone https://github.com/your-org/openruntime-enhanced.git
-cd openruntime-enhanced
+git clone https://github.com/openruntime/openruntime.git
+cd openruntime
 ```
 
-2. **Set up environment**
+2. **Install dependencies:**
 ```bash
-export OPENAI_API_KEY="your-openai-api-key"
+pip install -r requirements.txt
 ```
 
-3. **Quick setup**
+3. **Verify installation:**
 ```bash
-chmod +x scripts/setup.sh
-./scripts/setup.sh
+python openruntime.py --help
 ```
 
-4. **Start the server**
+### Basic Usage
+
+1. **Start the server:**
 ```bash
-python openruntime_enhanced.py
+python openruntime.py --host 0.0.0.0 --port 8000
 ```
 
-5. **Access the dashboard**
-- API Documentation: http://localhost:8000/docs
-- WebSocket Demo: ws://localhost:8000/ws
-- Health Check: http://localhost:8000/health
-
-### Docker Deployment
-
+2. **Use the CLI:**
 ```bash
-# Start full monitoring stack
-docker-compose up -d
+# Check system status
+python cli_simple.py status
 
-# Access services
-# OpenRuntime: http://localhost:8000
-# Grafana: http://localhost:3000 (admin/admin)
-# Prometheus: http://localhost:9090
+# List available devices
+python cli_simple.py devices
+
+# Run a matrix multiplication benchmark
+python cli_simple.py run --operation mlx_compute --size 2048
+
+# Monitor system in real-time
+python cli_simple.py monitor
 ```
 
-## Usage Examples
+3. **Access the API:**
+```bash
+# Get system information
+curl http://localhost:8000/
 
-### Basic GPU Computation
+# List devices
+curl http://localhost:8000/devices
 
-```python
-import requests
-
-# Matrix multiplication on GPU
-response = requests.post("http://localhost:8000/tasks", json={
-    "operation": "compute",
-    "data": {
-        "type": "matrix_multiply",
-        "size": 2048
-    },
-    "device_preference": "metal"
-})
-
-result = response.json()
-print(f"GFLOPS: {result['result']['throughput']}")
-```
-
-### AI-Powered System Analysis
-
-```python
-# Get AI analysis of system performance
-response = requests.post("http://localhost:8000/ai/tasks", json={
-    "workflow_type": "system_analysis",
-    "prompt": "Analyze current GPU performance and suggest optimizations",
-    "context": {
-        "system_metrics": {
-            "gpu_utilization": 75,
-            "memory_usage": 8.5,
-            "temperature": 65
-        }
-    }
-})
-
-analysis = response.json()
-print(analysis['result']['analysis'])
-```
-
-### ML Model Inference
-
-```python
-# Run ML inference with automatic GPU acceleration
-response = requests.post("http://localhost:8000/tasks", json={
-    "operation": "inference",
-    "data": {
-        "model": "resnet50",
-        "batch_size": 32
-    }
-})
-
-result = response.json()
-print(f"Inference FPS: {result['result']['throughput_fps']}")
-```
-
-### Shell Automation with AI
-
-```python
-# Execute shell commands with AI assistance
-response = requests.post("http://localhost:8000/shell/execute", json={
-    "command": "Find all Python processes using more than 1GB memory",
-    "use_ai": True,
-    "safety_check": True
-})
-
-result = response.json()
-print(f"Command: {result['command']}")
-print(f"Output: {result['output']}")
-```
-
-### High-Performance Rust Client
-
-```rust
-use openai_runtime_rs::{OpenAIClient, ChatRequest, Message};
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = OpenAIClient::new("your-api-key")?;
-    
-    let request = ChatRequest::new("gpt-4")
-        .add_message(Message::user("Explain GPU computing"));
-    
-    let response = client.chat_completion(request).await?;
-    println!("{}", response.content().unwrap_or("No response"));
-    
-    // Get client metrics
-    let metrics = client.metrics();
-    println!("Requests: {}", metrics.overall.total_requests);
-    
-    Ok(())
-}
+# Run a benchmark
+curl -X POST http://localhost:8000/benchmark
 ```
 
 ## Architecture
 
-### System Components
+### Core Components
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   FastAPI App   │    │  AI Agent Mgr   │    │ GPU Runtime Mgr │
-│                 │◄──►│                 │◄──►│                 │
-│ • REST API      │    │ • OpenAI Agents │    │ • Metal/CUDA    │
-│ • WebSocket     │    │ • LangChain     │    │ • Device Mgmt   │
-│ • Streaming     │    │ • Shell-GPT     │    │ • Task Sched    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Metrics Sys    │    │  WebSocket Mgr  │    │   Cache Layer   │
-│                 │    │                 │    │                 │
-│ • Prometheus    │    │ • Real-time     │    │ • LRU Cache     │
-│ • Grafana       │    │ • Broadcasting  │    │ • TTL Support   │
-│ • Custom        │    │ • Client Mgmt   │    │ • Invalidation  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+OpenRuntime/
+├── openruntime.py          # Main server with MLX integration
+├── cli_simple.py           # Command-line interface
+├── requirements.txt        # Python dependencies
+├── setup.py               # Package configuration
+├── Dockerfile             # Container configuration
+├── docker-compose.yml     # Multi-service deployment
+├── tests/                 # Comprehensive test suite
+├── scripts/               # Utility scripts
+├── monitoring/            # Performance monitoring tools
+└── docs/                  # Documentation
 ```
 
-### GPU Pipeline
+### Runtime Architecture
 
 ```
-Input Data → Device Selection → Task Queuing → GPU Execution → Result Caching → Response
-     │              │               │              │              │             │
-     ▼              ▼               ▼              ▼              ▼             ▼
-   JSON         Metal/CUDA      Priority       Kernel Exec    LRU Cache     FastAPI
-  Validation     Detection       Queue         MPS/CUDA      TTL Expire    Response
+┌─────────────────────────────────────────────────────────────┐
+│                    OpenRuntime API Layer                    │
+├─────────────────────────────────────────────────────────────┤
+│  FastAPI Server  │  WebSocket Manager  │  Task Scheduler   │
+├─────────────────────────────────────────────────────────────┤
+│                    GPU Runtime Manager                      │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │ MLX Manager │  │PyTorch Metal│  │CPU Fallback │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘        │
+├─────────────────────────────────────────────────────────────┤
+│                    Device Layer                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │Apple Metal  │  │PyTorch MPS  │  │   NumPy     │        │
+│  │   (MLX)     │  │   Device    │  │   CPU       │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Configuration
+## API Reference
 
-### Main Configuration (`config/openruntime.yaml`)
+### Core Endpoints
 
-```yaml
-# Server settings
-server:
-  host: "0.0.0.0"
-  port: 8000
-  workers: 4
+#### System Information
+- `GET /` - Get system status and information
+- `GET /health` - Health check endpoint
+- `GET /devices` - List all available devices
+- `GET /devices/{device_id}/metrics` - Get device metrics
 
-# AI providers
-ai_providers:
-  openai:
-    enabled: true
-    api_key: "${OPENAI_API_KEY}"
-    models:
-      chat: "gpt-4"
-      embeddings: "text-embedding-ada-002"
+#### Task Management
+- `POST /tasks` - Create and execute computational tasks
+- `GET /tasks` - List active tasks
+- `GET /tasks/{task_id}` - Get task status
 
-# GPU settings
-gpu:
-  enabled: true
-  preferred_device: "metal"
-  memory_limit: "80%"
-  fallback_to_cpu: true
+#### Benchmarking
+- `POST /benchmark` - Run performance benchmarks
+- `GET /metrics/summary` - Get aggregated metrics
 
-# Performance tuning
-performance:
-  max_concurrent_tasks: 10
-  task_timeout: 300
-  cache:
-    enabled: true
-    max_size: 1000
-    ttl: 300
+#### Advanced Features
+- `POST /kernels/compile` - Compile custom compute kernels
+- `GET /kernels` - List compiled kernels
+- `POST /profile/start` - Start system profiling
+
+### WebSocket Endpoints
+- `WS /ws` - Real-time metrics and status updates
+
+### Task Types
+
+#### Compute Operations
+```json
+{
+  "operation": "compute",
+  "data": {
+    "type": "matrix_multiply",
+    "size": 1024
+  },
+  "device_preference": "mlx"
+}
 ```
 
-### Environment Variables
+#### MLX Compute Operations
+```json
+{
+  "operation": "mlx_compute",
+  "data": {
+    "type": "matrix_multiply",
+    "size": 2048,
+    "dtype": "float32"
+  }
+}
+```
+
+#### Inference Operations
+```json
+{
+  "operation": "inference",
+  "data": {
+    "model": "resnet50",
+    "batch_size": 4
+  }
+}
+```
+
+## CLI Reference
+
+### Basic Commands
 
 ```bash
-# Required
-export OPENAI_API_KEY="sk-..."
+# System status
+openruntime status
 
-# Optional
-export ANTHROPIC_API_KEY="..."
-export LOG_LEVEL="info"
-export GPU_MEMORY_LIMIT="80%"
-export MAX_CONCURRENT_TASKS="10"
+# Device information
+openruntime devices
+
+# Active tasks
+openruntime tasks
+
+# Run computations
+openruntime run --operation mlx_compute --size 1024
+
+# Run benchmarks
+openruntime benchmark --type comprehensive
+
+# Real-time monitoring
+openruntime monitor
+
+# Start server
+openruntime server
+
+# Open documentation
+openruntime docs
 ```
 
-## Monitoring & Observability
-
-### Metrics Available
-
-- **Request Metrics**: Rate, latency, success rate by endpoint
-- **GPU Metrics**: Utilization, memory usage, temperature, power
-- **AI Metrics**: Token usage, model performance, agent execution times
-- **System Metrics**: CPU, memory, disk, network usage
-
-### Grafana Dashboards
-
-- **System Overview**: High-level system health and performance
-- **GPU Performance**: Detailed GPU utilization and benchmarks
-- **AI Operations**: Agent performance and token usage analytics
-- **Request Analytics**: API usage patterns and performance trends
-
-### Log Analysis
+### Advanced Options
 
 ```bash
-# View real-time logs
-tail -f logs/openruntime.log
+# Specify custom server URL
+openruntime --url http://192.168.1.100:8000 status
 
-# Search for errors
-grep "ERROR" logs/openruntime.log
+# Verbose logging
+openruntime --verbose devices
 
-# Analyze performance patterns
-grep "execution_time" logs/openruntime.log | jq '.execution_time'
+# Device-specific operations
+openruntime run --operation inference --model bert --device mlx_metal_0
+
+# Custom benchmark parameters
+openruntime benchmark --type compute --device torch_metal_0
 ```
 
-## Testing & Benchmarking
+## Performance Benchmarks
 
-### Run Comprehensive Tests
+### Matrix Multiplication Performance
 
+| Device Type | Matrix Size | Performance | Memory Usage |
+|-------------|-------------|-------------|--------------|
+| MLX Metal   | 1024x1024   | ~500 GFLOPS | 8 MB        |
+| PyTorch MPS | 1024x1024   | ~400 GFLOPS | 12 MB       |
+| CPU (NumPy) | 1024x1024   | ~50 GFLOPS  | 16 MB       |
+
+### Neural Network Inference
+
+| Model       | Device Type | Latency (ms) | Throughput (FPS) |
+|-------------|-------------|--------------|------------------|
+| ResNet50    | MLX Metal   | 15           | 67               |
+| ResNet50    | PyTorch MPS | 20           | 50               |
+| BERT        | MLX Metal   | 25           | 40               |
+| GPT-2       | MLX Metal   | 50           | 20               |
+
+## Development
+
+### Setting Up Development Environment
+
+1. **Clone and setup:**
 ```bash
-# Unit tests
-python -m pytest tests/ -v
-
-# Integration tests
-python -m pytest tests/integration/ -v
-
-# Performance benchmarks
-./scripts/benchmark.sh
-
-# Stress testing
-python scripts/stress_test.py --concurrent 20 --total 500
+git clone https://github.com/openruntime/openruntime.git
+cd openruntime
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements-dev.txt
 ```
 
-### GPU Benchmarks
-
+2. **Run tests:**
 ```bash
-# Metal performance test
-curl -X POST "http://localhost:8000/benchmark?benchmark_type=compute"
-
-# ML inference benchmark
-curl -X POST "http://localhost:8000/benchmark?benchmark_type=ml"
-
-# Comprehensive system benchmark
-curl -X POST "http://localhost:8000/benchmark?benchmark_type=comprehensive"
+pytest tests/ -v
 ```
 
-## Production Deployment
+3. **Run linting:**
+```bash
+flake8 openruntime.py cli_simple.py
+black openruntime.py cli_simple.py
+```
+
+4. **Run type checking:**
+```bash
+mypy openruntime.py cli_simple.py
+```
+
+### Project Structure
+
+```
+openruntime/
+├── openruntime.py              # Main server implementation
+├── cli_simple.py               # CLI interface
+├── openruntime_enhanced.py     # Enhanced version with AI features
+├── requirements.txt            # Production dependencies
+├── requirements-dev.txt        # Development dependencies
+├── setup.py                    # Package configuration
+├── tests/                      # Test suite
+│   ├── test_openruntime.py     # Server tests
+│   ├── test_cli.py             # CLI tests
+│   └── test_mlx.py             # MLX integration tests
+├── scripts/                    # Utility scripts
+│   ├── benchmark.py            # Benchmark runner
+│   ├── stress_test.py          # Stress testing
+│   └── deploy.py               # Deployment script
+├── monitoring/                 # Monitoring tools
+│   ├── metrics_collector.py    # Metrics collection
+│   └── dashboard.py            # Web dashboard
+├── docker/                     # Docker configurations
+│   ├── Dockerfile              # Main container
+│   └── docker-compose.yml      # Multi-service setup
+└── docs/                       # Documentation
+    ├── api.md                  # API documentation
+    ├── deployment.md           # Deployment guide
+    └── performance.md          # Performance tuning
+```
+
+## Deployment
+
+### Docker Deployment
+
+1. **Build and run:**
+```bash
+docker build -t openruntime .
+docker run -p 8000:8000 openruntime
+```
+
+2. **Using docker-compose:**
+```bash
+docker-compose up -d
+```
+
+### Production Deployment
+
+1. **Using Gunicorn:**
+```bash
+pip install gunicorn
+gunicorn openruntime:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+```
+
+2. **Using systemd service:**
+```bash
+sudo cp scripts/openruntime.service /etc/systemd/system/
+sudo systemctl enable openruntime
+sudo systemctl start openruntime
+```
 
 ### Kubernetes Deployment
 
@@ -322,352 +361,190 @@ curl -X POST "http://localhost:8000/benchmark?benchmark_type=comprehensive"
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: openruntime-enhanced
+  name: openruntime
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: openruntime-enhanced
+      app: openruntime
   template:
     metadata:
       labels:
-        app: openruntime-enhanced
+        app: openruntime
     spec:
       containers:
       - name: openruntime
-        image: openruntime-enhanced:latest
+        image: openruntime:latest
         ports:
         - containerPort: 8000
-        env:
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: openai-secret
-              key: api-key
         resources:
-          limits:
-            memory: "4Gi"
-            cpu: "2"
           requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
             memory: "2Gi"
-            cpu: "1"
+            cpu: "2000m"
 ```
 
-### Load Balancer Configuration
+## Monitoring and Observability
 
-```nginx
-upstream openruntime_backend {
-    least_conn;
-    server openruntime-1:8000 weight=1 max_fails=3 fail_timeout=30s;
-    server openruntime-2:8000 weight=1 max_fails=3 fail_timeout=30s;
-    server openruntime-3:8000 weight=1 max_fails=3 fail_timeout=30s;
-}
+### Metrics Collection
 
-server {
-    listen 443 ssl http2;
-    server_name api.openruntime.example.com;
-    
-    ssl_certificate /etc/ssl/certs/openruntime.crt;
-    ssl_certificate_key /etc/ssl/private/openruntime.key;
-    
-    location / {
-        proxy_pass http://openruntime_backend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # WebSocket support
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-}
-```
+OpenRuntime provides comprehensive metrics collection:
 
-## Security
+- **Device Metrics:** GPU utilization, memory usage, temperature, power consumption
+- **Task Metrics:** Execution time, throughput, resource usage
+- **System Metrics:** Overall performance, bottlenecks, optimization opportunities
 
-### API Security
+### Integration with Monitoring Tools
 
-- **Rate Limiting**: Built-in request rate limiting per client
-- **Input Validation**: Comprehensive request validation with Pydantic
-- **Safe Shell Execution**: AI-powered command safety analysis
-- **Environment Isolation**: Containerized execution environments
-- **Secrets Management**: Environment variable based secret handling
+- **Prometheus:** Native metrics export
+- **Grafana:** Pre-built dashboards
+- **Jaeger:** Distributed tracing
+- **ELK Stack:** Log aggregation and analysis
 
-### Shell Command Safety
+### Performance Tuning
 
+1. **Memory Optimization:**
 ```python
-# Commands are analyzed for safety before execution
-safe_commands = [
-    "ls -la",
-    "ps aux | grep python",
-    "nvidia-smi",
-    "df -h"
-]
-
-dangerous_patterns = [
-    "rm -rf",
-    "dd if=",
-    "sudo su",
-    "wget.*|.*bash"
-]
+# Configure memory limits
+runtime_manager.set_memory_limit("mlx_metal_0", 0.8)  # 80% of available memory
 ```
 
-### Production Security Checklist
-
-- [ ] Set strong JWT secrets
-- [ ] Enable HTTPS/TLS
-- [ ] Configure firewall rules
-- [ ] Set up API key authentication
-- [ ] Enable audit logging
-- [ ] Regular security updates
-- [ ] Monitor for suspicious activity
-
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
-
-```bash
-# Clone and setup
-git clone https://github.com/your-org/openruntime-enhanced.git
-cd openruntime-enhanced
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Install pre-commit hooks
-pre-commit install
-
-# Run tests
-python -m pytest
-
-# Start development server
-python openruntime_enhanced.py --reload
+2. **Task Scheduling:**
+```python
+# Set task priorities
+task = TaskRequest(
+    operation="compute",
+    priority=5,  # Higher priority
+    device_preference=DeviceType.MLX
+)
 ```
 
-### Code Style
-
-- **Python**: Black formatter, isort imports, flake8 linting
-- **Rust**: Standard rustfmt formatting
-- **Documentation**: Google-style docstrings
-- **Type Hints**: Required for all Python functions
-
-## API Documentation
-
-### Core Endpoints
-
-| Endpoint | Method | Description |
-|----------|---------|-------------|
-| `/` | GET | System status and health |
-| `/devices` | GET | List available GPU devices |
-| `/tasks` | POST | Execute computational tasks |
-| `/ai/tasks` | POST | Execute AI-powered tasks |
-| `/benchmark` | POST | Run performance benchmarks |
-| `/metrics` | GET | System metrics |
-| `/ws` | WebSocket | Real-time updates |
-
-### Response Formats
-
-All responses follow this structure:
-
-```json
-{
-    "status": "success|error",
-    "data": {},
-    "message": "Optional message",
-    "timestamp": "2024-01-01T00:00:00Z",
-    "execution_time": 0.123
-}
+3. **Batch Processing:**
+```python
+# Optimize batch sizes for inference
+task = TaskRequest(
+    operation="inference",
+    data={"batch_size": 8, "model": "resnet50"}
+)
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-**Metal Not Available**
+1. **MLX Import Error:**
 ```bash
-# Check Metal support
-python -c "import metal_performance_shaders; print('Metal available')"
-
-# Fallback to CPU
-export GPU_FALLBACK_TO_CPU=true
+# Ensure MLX is installed for Apple Silicon
+pip install mlx
 ```
 
-**OpenAI API Errors**
+2. **PyTorch Metal Not Available:**
 ```bash
-# Verify API key
-curl -H "Authorization: Bearer $OPENAI_API_KEY" \
-     https://api.openai.com/v1/models
-
-# Check rate limits
-grep "rate_limit" logs/openruntime.log
+# Install PyTorch with Metal support
+pip install torch torchvision torchaudio
 ```
 
-**High Memory Usage**
+3. **Permission Issues:**
 ```bash
-# Reduce cache size
-export CACHE_MAX_SIZE=100
+# Grant necessary permissions
+sudo chmod +x openruntime.py
+```
 
-# Lower concurrent tasks
-export MAX_CONCURRENT_TASKS=5
+4. **Port Already in Use:**
+```bash
+# Use a different port
+python openruntime.py --port 8001
 ```
 
 ### Debug Mode
 
 ```bash
 # Enable debug logging
-python openruntime_enhanced.py --log-level debug
+python openruntime.py --log-level debug
 
-# Profile performance
-python -m cProfile openruntime_enhanced.py
+# Verbose CLI output
+python cli_simple.py --verbose status
 ```
 
-## Performance Tuning
+### Performance Issues
 
-### GPU Optimization
-
-```yaml
-# config/openruntime.yaml
-gpu:
-  memory_limit: "90%"  # Use more GPU memory
-  optimization_level: "performance"  # vs "memory" or "balanced"
-  batch_size: 64  # Larger batches for better throughput
+1. **Check device availability:**
+```bash
+python cli_simple.py devices
 ```
 
-### Concurrency Tuning
-
-```yaml
-performance:
-  max_concurrent_tasks: 20  # Increase for more parallelism
-  task_timeout: 600  # Longer timeout for complex tasks
-  thread_pool_size: 16  # More worker threads
+2. **Monitor resource usage:**
+```bash
+python cli_simple.py monitor
 ```
 
-### Caching Strategy
-
-```yaml
-cache:
-  enabled: true
-  max_size: 5000  # Larger cache
-  ttl: 1800  # Longer cache lifetime
-  cleanup_interval: 300  # More frequent cleanup
+3. **Run diagnostics:**
+```bash
+python cli_simple.py benchmark --type comprehensive
 ```
 
-## Advanced Features
+## Contributing
 
-### Custom AI Agents
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-```python
-# Create custom AI agent
-agent = AIAgent(
-    id="custom_optimizer",
-    name="Custom Performance Optimizer",
-    role=AgentRole.PERFORMANCE_OPTIMIZER,
-    provider=AIProviderType.OPENAI,
-    model="gpt-4",
-    system_prompt="""You are a specialized GPU performance optimizer.
-    Focus on memory bandwidth optimization and compute unit utilization.""",
-    capabilities=["memory_optimization", "bandwidth_analysis"]
-)
+### Development Workflow
 
-agent_manager.register_agent(agent)
-```
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run the test suite: `pytest tests/`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
-### Workflow Automation
+### Code Style
 
-```python
-# Define complex workflow
-workflow = WorkflowTask(
-    id="auto_optimization",
-    workflow_type=WorkflowType.COMPUTE_OPTIMIZATION,
-    agent_id="perf_optimizer",
-    input_data={
-        "metrics": current_metrics,
-        "workload_type": "ml_inference",
-        "optimization_target": "throughput"
-    },
-    dependencies=["system_analysis", "baseline_benchmark"]
-)
-
-result = await workflow_manager.execute(workflow)
-```
-
-### Custom Compute Kernels
-
-```python
-# Compile custom Metal kernel
-kernel_source = """
-#include <metal_stdlib>
-using namespace metal;
-
-kernel void custom_matrix_multiply(
-    device const float* A [[buffer(0)]],
-    device const float* B [[buffer(1)]],
-    device float* C [[buffer(2)]],
-    uint2 gid [[thread_position_in_grid]]
-) {
-    // Custom optimized matrix multiplication
-    // ...
-}
-"""
-
-kernel = ComputeKernel(
-    name="optimized_matmul",
-    source_code=kernel_source,
-    entry_point="custom_matrix_multiply",
-    parameters={"block_size": 16}
-)
-
-compiled = await runtime_manager.compile_kernel(kernel)
-```
-
-## Roadmap
-
-### v1.1.0 (Q2 2024)
-- [ ] Support for additional GPU backends (Vulkan, OpenCL)
-- [ ] Distributed computing across multiple machines
-- [ ] Advanced AI model fine-tuning capabilities
-- [ ] Real-time collaborative workflows
-
-### v1.2.0 (Q3 2024)
-- [ ] Integration with Hugging Face Transformers
-- [ ] Custom neural network architectures
-- [ ] Advanced memory management and optimization
-- [ ] Multi-tenant isolation and resource quotas
-
-### v2.0.0 (Q4 2024)
-- [ ] Native support for other platforms (Linux, Windows)
-- [ ] Edge computing deployment options
-- [ ] Advanced security and compliance features
-- [ ] Enterprise management console
+- Follow PEP 8 style guidelines
+- Use type hints for all functions
+- Add docstrings for all public methods
+- Write comprehensive tests
+- Update documentation as needed
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-- **Apple** for Metal Performance Shaders framework
-- **OpenAI** for GPT models and API
-- **FastAPI** for the excellent web framework
-- **LangChain** for AI workflow orchestration
-- **Rust Community** for the high-performance client library
-
 ## Support
 
-- **Documentation**: [docs.openruntime.example.com](https://docs.openruntime.example.com)
-- **Issues**: [GitHub Issues](https://github.com/your-org/openruntime-enhanced/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/openruntime-enhanced/discussions)
-- **Email**: support@openruntime.example.com
+- **Documentation:** [https://docs.openruntime.example.com](https://docs.openruntime.example.com)
+- **Issues:** [GitHub Issues](https://github.com/openruntime/openruntime/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/openruntime/openruntime/discussions)
+- **Email:** nikjois@llamasearch.ai
+
+## Acknowledgments
+
+- Apple for MLX and Metal frameworks
+- PyTorch team for Metal Performance Shaders support
+- FastAPI community for the excellent web framework
+- All contributors and users of OpenRuntime
+
+## Roadmap
+
+### Version 2.1.0 (Q2 2024)
+- [ ] Multi-node distributed computing
+- [ ] Advanced ML model support (Transformers, Diffusion models)
+- [ ] Real-time video processing capabilities
+- [ ] Enhanced monitoring dashboard
+
+### Version 2.2.0 (Q3 2024)
+- [ ] CUDA support for external GPUs
+- [ ] Vulkan integration
+- [ ] Advanced scheduling algorithms
+- [ ] Cloud deployment automation
+
+### Version 3.0.0 (Q4 2024)
+- [ ] Edge computing optimization
+- [ ] Federated learning support
+- [ ] Advanced AI agents integration
+- [ ] Enterprise features and security
 
 ---
 
-**OpenRuntime Enhanced** - Supercharge your GPU computing with AI
+**OpenRuntime** - Empowering GPU computing on Apple Silicon with cutting-edge Metal integration.

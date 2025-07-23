@@ -7,6 +7,7 @@ from setuptools import setup, find_packages
 from pathlib import Path
 import re
 
+
 # Read version from main module
 def get_version():
     version_file = Path("openruntime_enhanced.py")
@@ -17,6 +18,7 @@ def get_version():
             return version_match.group(1)
     return "1.0.0"
 
+
 # Read long description from README
 def get_long_description():
     readme_file = Path("README.md")
@@ -24,18 +26,20 @@ def get_long_description():
         return readme_file.read_text(encoding="utf-8")
     return ""
 
+
 # Read requirements
 def get_requirements(filename):
     req_file = Path(filename)
     if req_file.exists():
-        return req_file.read_text().strip().split('\n')
+        return req_file.read_text().strip().split("\n")
     return []
+
 
 setup(
     name="openruntime-enhanced",
     version=get_version(),
-    author="OpenRuntime Team",
-    author_email="team@openruntime.example.com",
+    author="Nik Jois",
+    author_email="nikjois@llamasearch.ai",
     description="Advanced GPU Runtime System with AI Integration",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
@@ -76,12 +80,14 @@ setup(
         "monitoring": [
             "prometheus-client>=0.16.0",
             "psutil>=5.9.0",
-        ]
+        ],
     },
     entry_points={
         "console_scripts": [
-            "openruntime=openruntime_enhanced:main",
-            "openruntime-enhanced=openruntime_enhanced:main",
+            "openruntime=cli_simple:main",
+            "openruntime-enhanced=cli_simple:main",
+            "openruntime-simple=cli_simple:main",
+            "openruntime-cli=cli:cli_main",
             "openruntime-benchmark=scripts.benchmark:main",
             "openruntime-stress=scripts.stress_test:main",
         ],
@@ -97,8 +103,16 @@ setup(
     },
     zip_safe=False,
     keywords=[
-        "gpu", "computing", "ai", "machine-learning", "performance", 
-        "runtime", "distributed", "metal", "openai", "langchain"
+        "gpu",
+        "computing",
+        "ai",
+        "machine-learning",
+        "performance",
+        "runtime",
+        "distributed",
+        "metal",
+        "openai",
+        "langchain",
     ],
     platforms=["any"],
     license="MIT",
