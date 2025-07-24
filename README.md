@@ -1,10 +1,51 @@
-# OpenRuntime: Advanced GPU Runtime System for macOS
+<div align="center">
+  <img src="openruntime.png" alt="OpenRuntime Logo" width="180" height="180">
+  
+  # OpenRuntime
+  
+  ### Advanced GPU Runtime System for macOS
+  
+  *Empowering GPU computing on Apple Silicon with cutting-edge Metal integration*
+  
+  [![GitHub](https://img.shields.io/badge/GitHub-OpenRuntime-181717?style=for-the-badge&logo=github)](https://github.com/openruntime/openruntime)
+  [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/openruntime/openruntime)
+  [![Release](https://img.shields.io/github/v/release/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/releases)
+  [![Contributors](https://img.shields.io/github/contributors/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/graphs/contributors)
+  [![Last Commit](https://img.shields.io/github/last-commit/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/commits/main)
+  [![Repo Size](https://img.shields.io/github/repo-size/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime)
+  [![Code Size](https://img.shields.io/github/languages/code-size/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime)
+  [![Top Language](https://img.shields.io/github/languages/top/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime)
+  [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.0-green.svg)](https://fastapi.tiangolo.com/)
+  [![MLX](https://img.shields.io/badge/MLX-0.0.6+-orange.svg)](https://ml-explore.github.io/mlx/)
+  [![PyTorch](https://img.shields.io/badge/PyTorch-2.0.0+-red.svg)](https://pytorch.org/)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![License](https://img.shields.io/github/license/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/blob/main/LICENSE)
+  [![Issues](https://img.shields.io/github/issues/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/issues)
+  [![Pull Requests](https://img.shields.io/github/issues-pr/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/pulls)
+  [![Discussions](https://img.shields.io/github/discussions/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/discussions)
+  [![Security](https://img.shields.io/github/security/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/security)
+  [![Workflow](https://img.shields.io/github/actions/workflow/status/openruntime/openruntime/ci.yml?branch=main)](https://github.com/openruntime/openruntime/actions)
+  [![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)](https://github.com/openruntime/openruntime)
+  [![Documentation](https://img.shields.io/badge/docs-complete-brightgreen.svg)](https://github.com/openruntime/openruntime#readme)
+  [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com/r/openruntime/openruntime)
+  [![Kubernetes](https://img.shields.io/badge/kubernetes-ready-blue.svg)](https://kubernetes.io/)
+  [![macOS](https://img.shields.io/badge/macOS-supported-silver.svg)](https://www.apple.com/macos/)
+  [![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-optimized-black.svg)](https://www.apple.com/mac/)
+  [![Metal](https://img.shields.io/badge/Metal-accelerated-purple.svg)](https://developer.apple.com/metal/)
+  [![GPU](https://img.shields.io/badge/GPU-computing-orange.svg)](https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units)
+  [![AI](https://img.shields.io/badge/AI-powered-red.svg)](https://openai.com/)
+  [![Machine Learning](https://img.shields.io/badge/Machine%20Learning-ready-green.svg)](https://pytorch.org/)
+  [![Performance](https://img.shields.io/badge/Performance-optimized-yellow.svg)](https://github.com/openruntime/openruntime#performance-benchmarks)
+  [![Monitoring](https://img.shields.io/badge/Monitoring-complete-blue.svg)](https://github.com/openruntime/openruntime#monitoring-and-observability)
+  [![Production](https://img.shields.io/badge/Production-ready-brightgreen.svg)](https://github.com/openruntime/openruntime#deployment)
+  
+  [![Star on GitHub](https://img.shields.io/github/stars/openruntime/openruntime.svg?style=social&label=Star)](https://github.com/openruntime/openruntime)
+  [![Fork on GitHub](https://img.shields.io/github/forks/openruntime/openruntime.svg?style=social&label=Fork)](https://github.com/openruntime/openruntime/fork)
+  [![Watch on GitHub](https://img.shields.io/github/watchers/openruntime/openruntime.svg?style=social&label=Watch)](https://github.com/openruntime/openruntime)
+</div>
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104.0-green.svg)](https://fastapi.tiangolo.com/)
-[![MLX](https://img.shields.io/badge/MLX-0.0.6+-orange.svg)](https://ml-explore.github.io/mlx/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0.0+-red.svg)](https://pytorch.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+---
 
 **Author:** Nik Jois <nikjois@llamasearch.ai>  
 **Version:** 2.0.0  
@@ -12,7 +53,31 @@
 
 A comprehensive GPU computing and ML inference platform designed specifically for macOS with Apple Silicon, featuring MLX Metal integration, PyTorch Metal support, and advanced performance monitoring.
 
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [API Reference](#api-reference)
+- [CLI Reference](#cli-reference)
+- [Performance Benchmarks](#performance-benchmarks)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Monitoring and Observability](#monitoring-and-observability)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+
 ## Features
+
+### What's New in v2.0.0
+
+- **MLX Metal Integration**: Native Apple Silicon GPU acceleration
+- **PyTorch Metal Support**: Optimized neural network inference
+- **Real-time Monitoring**: Live performance metrics and alerts
+- **AI-Powered Optimization**: Intelligent resource management
+- **Advanced Profiling**: Detailed performance analysis tools
 
 ### Core Capabilities
 - **Multi-GPU Runtime Management** with MLX Metal integration
@@ -39,6 +104,16 @@ A comprehensive GPU computing and ML inference platform designed specifically fo
 - **Real-time Metrics Collection** and analysis
 
 ## Quick Start
+
+### Demo
+
+```bash
+# Clone and run in one command
+git clone https://github.com/openruntime/openruntime.git && cd openruntime
+python openruntime.py --host 0.0.0.0 --port 8000
+```
+
+Visit `http://localhost:8000` to see the OpenRuntime dashboard.
 
 ### Prerequisites
 

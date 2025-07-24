@@ -1,0 +1,58 @@
+# GitHub Pages Configuration for OpenRuntime Documentation
+
+# Site settings
+title: OpenRuntime Documentation
+description: High-performance GPU runtime with integrated AI capabilities
+baseurl: "/openruntime"
+url: "https://your-org.github.io"
+
+# Theme
+theme: jekyll-theme-minimal
+remote_theme: pages-themes/minimal@v0.2.0
+
+# Plugins
+plugins:
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Getting Started
+    url: /getting-started
+  - title: API Reference
+    url: /api-reference
+  - title: CLI Guide
+    url: /cli-guide
+  - title: Architecture
+    url: /architecture
+  - title: Tutorials
+    url: /tutorials/
+
+# Footer
+footer_links:
+  - title: GitHub
+    url: https://github.com/your-org/openruntime
+  - title: Issues
+    url: https://github.com/your-org/openruntime/issues
+  - title: Discussions
+    url: https://github.com/your-org/openruntime/discussions
+
+# SEO
+twitter:
+  username: openruntime
+  card: summary
+
+# Analytics (uncomment and add your ID)
+# google_analytics: UA-XXXXXXXXX-X
+
+# Exclude files from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - LICENSE
+  - README.md
+  - CNAME

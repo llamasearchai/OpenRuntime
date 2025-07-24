@@ -1,5 +1,5 @@
 {
-  "name": "openruntime-enhanced",
+  "name": "openruntime",
   "version": "1.0.0",
   "description": "Advanced GPU Runtime System for macOS with AI Integration",
   "main": "openruntime_enhanced.py",
@@ -8,12 +8,12 @@
     "test": "pytest tests/ -v",
     "lint": "flake8 . && black --check . && isort --check-only .",
     "format": "black . && isort .",
-    "docker:build": "docker build -t openruntime-enhanced .",
+    "docker:build": "docker build -t openruntime .",
     "docker:run": "docker-compose up -d"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/openruntime-enhanced.git"
+    "url": "git+https://github.com/openruntime/openruntime.git"
   },
   "keywords": [
     "gpu",
@@ -26,10 +26,10 @@
     "machine-learning",
     "performance"
   ],
-  "author": "Your Name",
+  "author": "Nik Jois <nikjois@llamasearch.ai>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/your-username/openruntime-enhanced/issues"
+    "url": "https://github.com/openruntime/openruntime/issues"
   },
-  "homepage": "https://github.com/your-username/openruntime-enhanced#readme"
+  "homepage": "https://github.com/openruntime/openruntime#readme"
 } 

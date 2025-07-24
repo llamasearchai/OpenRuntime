@@ -13,7 +13,7 @@ ARG VERSION=2.0.0
 ARG VCS_REF
 
 # Add metadata
-LABEL maintainer="OpenRuntime Team" \
+LABEL maintainer="Nik Jois <nikjois@llamasearch.ai>" \
       version="${VERSION}" \
       description="OpenRuntime Enhanced - AI-Powered GPU Runtime System" \
       build-date="${BUILD_DATE}" \
@@ -105,6 +105,6 @@ CMD ["python", "openruntime_enhanced.py", "--host", "0.0.0.0", "--port", "8001"]
 
 # =============================================================================
 # Build Instructions:
-# docker build -f Dockerfile.enhanced -t openruntime-enhanced:latest .
-# docker run -p 8001:8001 -e OPENAI_API_KEY=your_key openruntime-enhanced:latest
+# docker build -f Dockerfile.enhanced -t openruntime:latest .
+# docker run -p 8001:8001 -e OPENAI_API_KEY=your_key openruntime:latest
 # ============================================================================= 

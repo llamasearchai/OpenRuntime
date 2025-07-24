@@ -47,14 +47,14 @@ jobs:
       run: isort --check-only .
     
     - name: Type check with mypy
-      run: mypy openruntime.py --ignore-missing-imports
+      run: mypy openruntime_enhanced/ --ignore-missing-imports
     
     - name: Security check with bandit
       run: bandit -r . -x tests/
     
     - name: Test with pytest
       run: |
-        pytest tests/test_openruntime.py -v --cov=. --cov-report=xml
+        pytest tests/ -v --cov=. --cov-report=xml
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -85,11 +85,11 @@ jobs:
     
     - name: Test with pytest (macOS)
       run: |
-        pytest tests/test_openruntime.py -v --tb=short
+        pytest tests/ -v --tb=short
     
     - name: Test server startup
       run: |
-        timeout 10s python openruntime.py --host 127.0.0.1 --port 8000 || echo "Server test completed"
+        timeout 10s python -m openruntime_enhanced --host 127.0.0.1 --port 8001 || echo "Server test completed"
 
   # =============================================================================
   # Docker Build and Test
@@ -100,6 +100,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build Docker image
-      run: docker build -t openruntime .
+      run: docker build -f Dockerfile.enhanced -t openruntime .
     - name: Test Docker image
-      run: docker run --rm openruntime python -c "import openruntime; print('Import successful')"
+      run: docker run --rm openruntime python -c "import openruntime_enhanced; print('Import successful')"

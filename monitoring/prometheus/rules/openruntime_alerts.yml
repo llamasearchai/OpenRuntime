@@ -10,14 +10,14 @@ groups:
     interval: 30s
     rules:
       - alert: OpenRuntimeDown
-        expr: up{job="openruntime-enhanced"} == 0
+        expr: up{job="openruntime"} == 0
         for: 1m
         labels:
           severity: critical
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
-          summary: "OpenRuntime Enhanced is down"
-          description: "OpenRuntime Enhanced has been down for more than 1 minute."
+          summary: "OpenRuntime is down"
+          description: "OpenRuntime has been down for more than 1 minute."
           runbook_url: "https://docs.openruntime.example.com/runbooks/service-down"
 
       - alert: HighMemoryUsage
@@ -25,7 +25,7 @@ groups:
         for: 5m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High memory usage detected"
           description: "Memory usage is above 90% for more than 5 minutes. Current usage: {{ $value | humanizePercentage }}"
@@ -35,7 +35,7 @@ groups:
         for: 10m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High CPU usage detected"
           description: "CPU usage is above 80% for more than 10 minutes on {{ $labels.instance }}"
@@ -45,7 +45,7 @@ groups:
         for: 5m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "Disk space is running low"
           description: "Disk usage is above 85% on {{ $labels.instance }}:{{ $labels.mountpoint }}"
@@ -57,21 +57,21 @@ groups:
     interval: 15s
     rules:
       - alert: HighRequestLatency
-        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="openruntime-enhanced"}[5m])) > 2
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="openruntime"}[5m])) > 2
         for: 3m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High request latency detected"
           description: "95th percentile latency is above 2 seconds for {{ $labels.method }} {{ $labels.endpoint }}"
 
       - alert: HighErrorRate
-        expr: rate(http_requests_total{job="openruntime-enhanced",status=~"5.."}[5m]) / rate(http_requests_total{job="openruntime-enhanced"}[5m]) > 0.05
+        expr: rate(http_requests_total{job="openruntime",status=~"5.."}[5m]) / rate(http_requests_total{job="openruntime"}[5m]) > 0.05
         for: 2m
         labels:
           severity: critical
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High error rate detected"
           description: "Error rate is above 5% for more than 2 minutes. Current rate: {{ $value | humanizePercentage }}"
@@ -81,7 +81,7 @@ groups:
         for: 5m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High number of concurrent tasks"
           description: "Number of concurrent tasks is {{ $value }}, above the warning threshold of 15"
@@ -91,7 +91,7 @@ groups:
         for: 3m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High task failure rate"
           description: "Task failure rate is {{ $value | humanizePercentage }}, above 10%"
@@ -107,7 +107,7 @@ groups:
         for: 5m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "GPU utilization is very high"
           description: "GPU {{ $labels.device_id }} utilization is {{ $value }}% for more than 5 minutes"
@@ -117,7 +117,7 @@ groups:
         for: 3m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "GPU memory usage is high"
           description: "GPU {{ $labels.device_id }} memory usage is {{ $value | humanizePercentage }}"
@@ -127,17 +127,17 @@ groups:
         for: 2m
         labels:
           severity: critical
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "GPU temperature is too high"
           description: "GPU {{ $labels.device_id }} temperature is {{ $value }}°C, above 80°C threshold"
 
       - alert: GPUNotResponding
-        expr: absent(openruntime_gpu_utilization) and ON() up{job="openruntime-enhanced"} == 1
+        expr: absent(openruntime_gpu_utilization) and ON() up{job="openruntime"} == 1
         for: 1m
         labels:
           severity: critical
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "GPU metrics not available"
           description: "GPU metrics are not being reported while the service is up"
@@ -153,7 +153,7 @@ groups:
         for: 5m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "AI task latency is high"
           description: "95th percentile AI task latency is {{ $value }} seconds, above 30s threshold"
@@ -163,7 +163,7 @@ groups:
         for: 1m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "OpenAI API rate limiting detected"
           description: "OpenAI API is rate limiting requests. Rate: {{ $value }} requests/second"
@@ -173,7 +173,7 @@ groups:
         for: 15m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High AI token usage"
           description: "AI token usage is {{ $value }} tokens/hour, approaching limits"
@@ -183,7 +183,7 @@ groups:
         for: 2m
         labels:
           severity: critical
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "AI model is unavailable"
           description: "AI model {{ $labels.model }} is not available"
@@ -214,14 +214,14 @@ groups:
           description: "Prometheus target {{ $labels.job }} on {{ $labels.instance }} is down"
 
       - alert: TooManyRestarts
-        expr: changes(process_start_time_seconds{job="openruntime-enhanced"}[1h]) > 3
+        expr: changes(process_start_time_seconds{job="openruntime"}[1h]) > 3
         for: 5m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "Service restarting frequently"
-          description: "OpenRuntime Enhanced has restarted {{ $value }} times in the last hour"
+          description: "OpenRuntime has restarted {{ $value }} times in the last hour"
 
   # =============================================================================
   # Security Alerts
@@ -230,11 +230,11 @@ groups:
     interval: 30s
     rules:
       - alert: UnauthorizedAccess
-        expr: rate(http_requests_total{job="openruntime-enhanced",status="401"}[5m]) > 0.1
+        expr: rate(http_requests_total{job="openruntime",status="401"}[5m]) > 0.1
         for: 2m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High rate of unauthorized access attempts"
           description: "Rate of 401 responses is {{ $value }} requests/second"
@@ -244,7 +244,7 @@ groups:
         for: 1m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "Suspicious shell commands detected"
           description: "{{ $value }} potentially dangerous shell commands were blocked in the last 5 minutes"
@@ -254,7 +254,7 @@ groups:
         for: 10m
         labels:
           severity: warning
-          service: openruntime-enhanced
+          service: openruntime
         annotations:
           summary: "High API usage from single key"
           description: "API key {{ $labels.api_key_id }} is making {{ $value }} requests/hour" 

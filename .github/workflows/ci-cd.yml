@@ -44,7 +44,7 @@ jobs:
         run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         
       - name: MyPy type checking
-        run: mypy openruntime_enhanced.py --ignore-missing-imports
+        run: mypy openruntime_enhanced/ --ignore-missing-imports
         
       - name: Bandit security linting
         run: bandit -r . -f json -o bandit-report.json

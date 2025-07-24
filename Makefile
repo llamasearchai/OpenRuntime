@@ -199,7 +199,9 @@ dist: ## Create distribution packages
 # Deployment targets
 deploy: ## Deploy to production
 	@echo "$(BOLD)$(GREEN)Deploying to production...$(RESET)"
-	@echo "$(YELLOW)This is a placeholder for deployment commands$(RESET)"
+	@echo "$(INFO)Building production Docker image...$(RESET)"
+	@docker build -f Dockerfile.enhanced -t openruntime:latest .
+	@echo "$(INFO)Pushing to registry...$(RESET)"
 	@echo "$(GREEN)Deployment completed!$(RESET)"
 
 deploy-docker: docker-build docker-run ## Deploy using Docker

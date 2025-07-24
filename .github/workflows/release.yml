@@ -37,7 +37,7 @@ jobs:
     
     - name: Run tests
       run: |
-        pytest tests/test_openruntime.py -v --cov=. --cov-report=xml
+        pytest tests/ -v --cov=. --cov-report=xml
     
     - name: Upload coverage
       uses: codecov/codecov-action@v3
@@ -164,7 +164,7 @@ jobs:
           
           ### Quick Start
           ```bash
-          python openruntime.py --host 127.0.0.1 --port 8000
+          python -m openruntime_enhanced --host 127.0.0.1 --port 8001
           ```
           
           ### Features

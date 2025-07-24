@@ -361,7 +361,7 @@ class SecurityManager:
             ip_addr = ipaddress.ip_address(client_ip)
             if ip_addr.is_private and self.config.require_https:
                 # Allow private IPs only for development
-                pass
+                logger.debug(f"Private IP {client_ip} allowed for development")
         except ValueError:
             # Invalid IP address
             return False

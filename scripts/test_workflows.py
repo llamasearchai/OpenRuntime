@@ -71,7 +71,7 @@ class WorkflowTester:
         # Check Python version
         version_info = sys.version_info
         if version_info.major == 3 and version_info.minor >= 11:
-            print_success(f"Python {version_info.major}.{version_info.minor}.{version_info.micro} ✓")
+            print_success(f"Python {version_info.major}.{version_info.minor}.{version_info.micro}")
         else:
             print_error(f"Python {version_info.major}.{version_info.minor}.{version_info.micro} - Need 3.11+")
             return False
@@ -83,9 +83,9 @@ class WorkflowTester:
         for module in required_modules:
             try:
                 __import__(module)
-                print_success(f"{module} ✓")
+                print_success(f"{module}")
             except ImportError:
-                print_error(f"{module} ✗")
+                print_error(f"{module} - missing")
                 missing_modules.append(module)
 
         if missing_modules:
@@ -120,17 +120,17 @@ class WorkflowTester:
         missing_files = []
         for file_path in required_files:
             if Path(file_path).exists():
-                print_success(f"{file_path} ✓")
+                print_success(f"{file_path}")
             else:
-                print_error(f"{file_path} ✗")
+                print_error(f"{file_path} - missing")
                 missing_files.append(file_path)
 
         missing_dirs = []
         for dir_path in required_dirs:
             if Path(dir_path).exists():
-                print_success(f"{dir_path}/ ✓")
+                print_success(f"{dir_path}/")
             else:
-                print_error(f"{dir_path}/ ✗")
+                print_error(f"{dir_path}/ - missing")
                 missing_dirs.append(dir_path)
 
         if missing_files or missing_dirs:
@@ -197,7 +197,7 @@ class WorkflowTester:
                         all_valid = False
                         continue
 
-                print_success(f"{workflow_file} ✓")
+                print_success(f"{workflow_file}")
 
             except yaml.YAMLError as e:
                 print_error(f"{workflow_file}: YAML syntax error - {e}")
@@ -215,7 +215,7 @@ class WorkflowTester:
         # Test Black formatting
         black_result = self.run_command(["python", "-m", "black", "--check", "--diff", "."])
         if black_result["success"]:
-            print_success("Black formatting ✓")
+            print_success("Black formatting")
         else:
             print_error("Black formatting issues found")
             print_info("Run: black . to fix formatting")
@@ -224,7 +224,7 @@ class WorkflowTester:
         # Test isort imports
         isort_result = self.run_command(["python", "-m", "isort", "--check-only", "--diff", "."])
         if isort_result["success"]:
-            print_success("isort imports ✓")
+            print_success("isort imports")
         else:
             print_error("isort import issues found")
             print_info("Run: isort . to fix imports")
@@ -235,7 +235,7 @@ class WorkflowTester:
             ["python", "-m", "flake8", ".", "--count", "--select=E9,F63,F7,F82", "--show-source", "--statistics"]
         )
         if flake8_result["success"]:
-            print_success("Flake8 linting ✓")
+            print_success("Flake8 linting")
         else:
             print_error("Flake8 linting issues found")
             print_info(flake8_result["stdout"])
@@ -255,7 +255,7 @@ class WorkflowTester:
         pytest_result = self.run_command(["python", "-m", "pytest", "tests/", "-v", "--tb=short", "--maxfail=5"], timeout=120)
 
         if pytest_result["success"]:
-            print_success("Pytest tests ✓")
+            print_success("Pytest tests")
             print_info(f"Test output:\n{pytest_result['stdout']}")
         else:
             print_error("Pytest tests failed")
@@ -284,7 +284,7 @@ class WorkflowTester:
             )
 
             if build_result["success"]:
-                print_success("Docker build ✓")
+                print_success("Docker build")
 
                 # Clean up test image
                 self.run_command(["docker", "rmi", "openruntime-test"])
@@ -304,7 +304,7 @@ class WorkflowTester:
         # Test simple CLI
         cli_status = self.run_command(["python", "cli_simple.py", "status"])
         if cli_status["success"]:
-            print_success("CLI status command ✓")
+            print_success("CLI status command")
         else:
             print_error("CLI status command failed")
             print_info(f"Error: {cli_status['stderr']}")
@@ -313,7 +313,7 @@ class WorkflowTester:
         # Test benchmark
         cli_benchmark = self.run_command(["python", "cli_simple.py", "benchmark", "--type", "cpu"])
         if cli_benchmark["success"]:
-            print_success("CLI benchmark command ✓")
+            print_success("CLI benchmark command")
         else:
             print_error("CLI benchmark command failed")
             print_info(f"Error: {cli_benchmark['stderr']}")
@@ -322,7 +322,7 @@ class WorkflowTester:
         # Test config generation
         cli_config = self.run_command(["python", "cli_simple.py", "config"])
         if cli_config["success"]:
-            print_success("CLI config command ✓")
+            print_success("CLI config command")
         else:
             print_error("CLI config command failed")
             print_info(f"Error: {cli_config['stderr']}")
@@ -337,7 +337,7 @@ class WorkflowTester:
         # Test setup.py check
         setup_check = self.run_command(["python", "setup.py", "check"])
         if setup_check["success"]:
-            print_success("setup.py check ✓")
+            print_success("setup.py check")
         else:
             print_error("setup.py check failed")
             print_info(f"Error: {setup_check['stderr']}")
@@ -367,15 +367,15 @@ class WorkflowTester:
         total = len(test_results)
 
         for test_name, result in test_results.items():
-            status = "✅ PASS" if result else "❌ FAIL"
+            status = "PASS" if result else "FAIL"
             print(f"{test_name.replace('_', ' ').title()}: {status}")
 
         print(f"\nOverall: {passed}/{total} tests passed")
 
         if passed == total:
-            print_success("🎉 All tests passed! System is ready for GitHub workflows.")
+            print_success("All tests passed! System is ready for GitHub workflows.")
         else:
-            print_error(f"❌ {total - passed} tests failed. Please fix issues before proceeding.")
+            print_error(f"{total - passed} tests failed. Please fix issues before proceeding.")
 
         return {"results": test_results, "passed": passed, "total": total, "success": passed == total}
 
@@ -398,9 +398,9 @@ class WorkflowTester:
             print_info(f"Running: {step_name}")
             result = self.run_command(cmd)
             if result["success"]:
-                print_success(f"{step_name} ✓")
+                print_success(f"{step_name}")
             else:
-                print_error(f"{step_name} ✗")
+                print_error(f"{step_name} - failed")
                 all_passed = False
 
         return all_passed
@@ -423,7 +423,7 @@ def main():
     print_header("Final Status")
 
     if report["success"] and workflow_success:
-        print_success("🚀 System is ready for GitHub workflows!")
+        print_success("System is ready for GitHub workflows!")
         print_info("You can now:")
         print_info("1. Push to GitHub")
         print_info("2. Create pull requests")
@@ -431,7 +431,7 @@ def main():
         print_info("4. Deploy to production")
         return 0
     else:
-        print_error("❌ System has issues that need to be resolved")
+        print_error("System has issues that need to be resolved")
         print_info("Please fix the failing tests before proceeding")
         return 1
 

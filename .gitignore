@@ -272,3 +272,37 @@ performance_report.html
 # Security reports
 bandit-report.json
 safety-report.json
+
+# Summary files (cleanup)
+*SUMMARY.md
+!README.md
+
+# Temporary files
+*.tmp
+*.temp
+server.log
+nohup.out
+
+# Performance reports
+performance_report_*.json
+reports/
+
+# Screenshots and images (except logo)
+*.png
+!openruntime.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+
+# Package lock files
+package-lock.json
+yarn.lock
+
+# Monitoring data
+monitoring/prometheus/data/
+monitoring/grafana/data/
+
+# Configuration (except examples)
+config/openruntime.yml
+!config/openruntime.yml.example

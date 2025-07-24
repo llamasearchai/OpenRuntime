@@ -10,7 +10,7 @@ import statistics
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import patch, AsyncMock
 
-from openruntime_enhanced import app, enhanced_runtime, AITaskRequest, WorkflowType
+from openruntime_enhanced.enhanced import app, enhanced_runtime, AITaskRequest, WorkflowType
 
 
 class TestPerformanceBenchmarks:

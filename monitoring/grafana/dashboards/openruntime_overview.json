@@ -18,7 +18,7 @@
         {
           "name": "instance",
           "type": "query",
-          "query": "label_values(up{job=\"openruntime-enhanced\"}, instance)",
+          "query": "label_values(up{job=\"openruntime\"}, instance)",
           "current": {
             "value": "All",
             "text": "All"
@@ -37,7 +37,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "up{job=\"openruntime-enhanced\"}",
+            "expr": "up{job=\"openruntime\"}",
             "legendFormat": "Service Status"
           }
         ],
@@ -104,7 +104,7 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "rate(http_requests_total{job=\"openruntime-enhanced\",instance=~\"$instance\"}[5m])",
+            "expr": "rate(http_requests_total{job=\"openruntime\",instance=~\"$instance\"}[5m])",
             "legendFormat": "Requests/sec"
           }
         ],
@@ -122,15 +122,15 @@
         "type": "timeseries",
         "targets": [
           {
-            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"openruntime-enhanced\",instance=~\"$instance\"}[5m]))",
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"openruntime\",instance=~\"$instance\"}[5m]))",
             "legendFormat": "p50"
           },
           {
-            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"openruntime-enhanced\",instance=~\"$instance\"}[5m]))",
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"openruntime\",instance=~\"$instance\"}[5m]))",
             "legendFormat": "p95"
           },
           {
-            "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"openruntime-enhanced\",instance=~\"$instance\"}[5m]))",
+            "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"openruntime\",instance=~\"$instance\"}[5m]))",
             "legendFormat": "p99"
           }
         ],
@@ -239,11 +239,11 @@
         "type": "timeseries",
         "targets": [
           {
-            "expr": "rate(http_requests_total{job=\"openruntime-enhanced\",status=~\"4..\",instance=~\"$instance\"}[5m])",
+            "expr": "rate(http_requests_total{job=\"openruntime\",status=~\"4..\",instance=~\"$instance\"}[5m])",
             "legendFormat": "4xx Errors"
           },
           {
-            "expr": "rate(http_requests_total{job=\"openruntime-enhanced\",status=~\"5..\",instance=~\"$instance\"}[5m])",
+            "expr": "rate(http_requests_total{job=\"openruntime\",status=~\"5..\",instance=~\"$instance\"}[5m])",
             "legendFormat": "5xx Errors"
           }
         ],
@@ -261,7 +261,7 @@
         "type": "table",
         "targets": [
           {
-            "expr": "topk(10, sum by (endpoint) (rate(http_requests_total{job=\"openruntime-enhanced\",instance=~\"$instance\"}[5m])))",
+            "expr": "topk(10, sum by (endpoint) (rate(http_requests_total{job=\"openruntime\",instance=~\"$instance\"}[5m])))",
             "format": "table",
             "instant": true
           }
@@ -309,7 +309,7 @@
           "name": "Alerts",
           "datasource": "Prometheus",
           "enable": true,
-          "expr": "ALERTS{job=\"openruntime-enhanced\"}",
+          "expr": "ALERTS{job=\"openruntime\"}",
           "iconColor": "red",
           "titleFormat": "{{alertname}}",
           "textFormat": "{{instance}}: {{summary}}"

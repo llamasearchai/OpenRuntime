@@ -36,24 +36,23 @@ def get_requirements(filename):
 
 
 setup(
-    name="openruntime-enhanced",
+    name="openruntime",
     version=get_version(),
     author="Nik Jois",
     author_email="nikjois@llamasearch.ai",
     description="Advanced GPU Runtime System with AI Integration",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
-    url="https://github.com/openruntime/openruntime-enhanced",
+    url="https://github.com/openruntime/openruntime",
     project_urls={
-        "Bug Tracker": "https://github.com/openruntime/openruntime-enhanced/issues",
-        "Documentation": "https://docs.openruntime.example.com",
-        "Source Code": "https://github.com/openruntime/openruntime-enhanced",
+        "Bug Tracker": "https://github.com/openruntime/openruntime/issues",
+        "Documentation": "https://github.com/openruntime/openruntime#readme",
+        "Source Code": "https://github.com/openruntime/openruntime",
     },
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.9",
@@ -85,9 +84,8 @@ setup(
     entry_points={
         "console_scripts": [
             "openruntime=cli_simple:main",
-            "openruntime-enhanced=cli_simple:main",
-            "openruntime-simple=cli_simple:main",
             "openruntime-cli=cli:cli_main",
+            "openruntime-simple=cli_simple:main",
             "openruntime-benchmark=scripts.benchmark:main",
             "openruntime-stress=scripts.stress_test:main",
         ],

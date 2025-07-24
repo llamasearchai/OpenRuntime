@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch, AsyncMock
 
 # Import the application
-from openruntime_enhanced import app, enhanced_runtime, AITaskRequest, WorkflowType, AgentRole
+from openruntime_enhanced.enhanced import app, enhanced_runtime, AITaskRequest, WorkflowType, AgentRole
 
 # Fixtures are now in conftest.py
 
