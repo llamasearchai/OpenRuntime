@@ -2,12 +2,12 @@ name: Deploy Documentation
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
     paths:
       - 'docs/**'
       - '.github/workflows/docs.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
     paths:
       - 'docs/**'
   workflow_dispatch:
@@ -27,36 +27,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.1'
+          ruby-version: '3.1' 
           bundler-cache: true
-          
+          cache-version: 0 
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v4
-        
+        uses: actions/configure-pages@v5
       - name: Build with Jekyll
-        run: |
-          cd docs
-          bundle install
-          bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
-        env:
-          JEKYLL_ENV: production
-          
+        run: bundle exec jekyll build --source docs --destination docs/_site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/_site
 
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # The 'github-pages' environment is a standard GitHub Actions environment.
+    # The linter may flag this as an error, but it is a valid configuration.
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to GitHub Pages
