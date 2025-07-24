@@ -7,27 +7,27 @@
   
   *Empowering GPU computing on Apple Silicon with cutting-edge Metal integration*
   
-  [![GitHub](https://img.shields.io/badge/GitHub-OpenRuntime-181717?style=for-the-badge&logo=github)](https://github.com/openruntime/openruntime)
-  [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/openruntime/openruntime)
-  [![Release](https://img.shields.io/github/v/release/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/releases)
-  [![Contributors](https://img.shields.io/github/contributors/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/graphs/contributors)
-  [![Last Commit](https://img.shields.io/github/last-commit/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/commits/main)
-  [![Repo Size](https://img.shields.io/github/repo-size/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime)
-  [![Code Size](https://img.shields.io/github/languages/code-size/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime)
-  [![Top Language](https://img.shields.io/github/languages/top/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime)
+  [![GitHub](https://img.shields.io/badge/GitHub-OpenRuntime-181717?style=for-the-badge&logo=github)](https://github.com/llamasearchai/OpenRuntime)
+  [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](https://github.com/llamasearchai/OpenRuntime)
+  [![Release](https://img.shields.io/github/v/release/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime/releases)
+  [![Contributors](https://img.shields.io/github/contributors/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime/graphs/contributors)
+  [![Last Commit](https://img.shields.io/github/last-commit/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime/commits/main)
+  [![Repo Size](https://img.shields.io/github/repo-size/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime)
+  [![Code Size](https://img.shields.io/github/languages/code-size/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime)
+  [![Top Language](https://img.shields.io/github/languages/top/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime)
   [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.0-green.svg)](https://fastapi.tiangolo.com/)
   [![MLX](https://img.shields.io/badge/MLX-0.0.6+-orange.svg)](https://ml-explore.github.io/mlx/)
   [![PyTorch](https://img.shields.io/badge/PyTorch-2.0.0+-red.svg)](https://pytorch.org/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![License](https://img.shields.io/github/license/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/blob/main/LICENSE)
-  [![Issues](https://img.shields.io/github/issues/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/issues)
-  [![Pull Requests](https://img.shields.io/github/issues-pr/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/pulls)
-  [![Discussions](https://img.shields.io/github/discussions/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/discussions)
-  [![Security](https://img.shields.io/github/security/openruntime/openruntime.svg)](https://github.com/openruntime/openruntime/security)
-  [![Workflow](https://img.shields.io/github/actions/workflow/status/openruntime/openruntime/ci.yml?branch=main)](https://github.com/openruntime/openruntime/actions)
-  [![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)](https://github.com/openruntime/openruntime)
-  [![Documentation](https://img.shields.io/badge/docs-complete-brightgreen.svg)](https://github.com/openruntime/openruntime#readme)
+  [![License](https://img.shields.io/github/license/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime/blob/main/LICENSE)
+  [![Issues](https://img.shields.io/github/issues/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime/issues)
+  [![Pull Requests](https://img.shields.io/github/issues-pr/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime/pulls)
+  [![Discussions](https://img.shields.io/github/discussions/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime/discussions)
+  [![Security](https://img.shields.io/github/security/llamasearchai/OpenRuntime.svg)](https://github.com/llamasearchai/OpenRuntime/security)
+  [![Workflow](https://img.shields.io/github/actions/workflow/status/llamasearchai/OpenRuntime/ci.yml?branch=main)](https://github.com/llamasearchai/OpenRuntime/actions)
+  [![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg)](https://github.com/llamasearchai/OpenRuntime)
+  [![Documentation](https://img.shields.io/badge/docs-complete-brightgreen.svg)](https://github.com/llamasearchai/OpenRuntime#readme)
   [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com/r/openruntime/openruntime)
   [![Kubernetes](https://img.shields.io/badge/kubernetes-ready-blue.svg)](https://kubernetes.io/)
   [![macOS](https://img.shields.io/badge/macOS-supported-silver.svg)](https://www.apple.com/macos/)
@@ -36,13 +36,13 @@
   [![GPU](https://img.shields.io/badge/GPU-computing-orange.svg)](https://en.wikipedia.org/wiki/General-purpose_computing_on_graphics_processing_units)
   [![AI](https://img.shields.io/badge/AI-powered-red.svg)](https://openai.com/)
   [![Machine Learning](https://img.shields.io/badge/Machine%20Learning-ready-green.svg)](https://pytorch.org/)
-  [![Performance](https://img.shields.io/badge/Performance-optimized-yellow.svg)](https://github.com/openruntime/openruntime#performance-benchmarks)
-  [![Monitoring](https://img.shields.io/badge/Monitoring-complete-blue.svg)](https://github.com/openruntime/openruntime#monitoring-and-observability)
-  [![Production](https://img.shields.io/badge/Production-ready-brightgreen.svg)](https://github.com/openruntime/openruntime#deployment)
+  [![Performance](https://img.shields.io/badge/Performance-optimized-yellow.svg)](https://github.com/llamasearchai/OpenRuntime#performance-benchmarks)
+  [![Monitoring](https://img.shields.io/badge/Monitoring-complete-blue.svg)](https://github.com/llamasearchai/OpenRuntime#monitoring-and-observability)
+  [![Production](https://img.shields.io/badge/Production-ready-brightgreen.svg)](https://github.com/llamasearchai/OpenRuntime#deployment)
   
-  [![Star on GitHub](https://img.shields.io/github/stars/openruntime/openruntime.svg?style=social&label=Star)](https://github.com/openruntime/openruntime)
-  [![Fork on GitHub](https://img.shields.io/github/forks/openruntime/openruntime.svg?style=social&label=Fork)](https://github.com/openruntime/openruntime/fork)
-  [![Watch on GitHub](https://img.shields.io/github/watchers/openruntime/openruntime.svg?style=social&label=Watch)](https://github.com/openruntime/openruntime)
+  [![Star on GitHub](https://img.shields.io/github/stars/llamasearchai/OpenRuntime.svg?style=social&label=Star)](https://github.com/llamasearchai/OpenRuntime)
+  [![Fork on GitHub](https://img.shields.io/github/forks/llamasearchai/OpenRuntime.svg?style=social&label=Fork)](https://github.com/llamasearchai/OpenRuntime/fork)
+  [![Watch on GitHub](https://img.shields.io/github/watchers/llamasearchai/OpenRuntime.svg?style=social&label=Watch)](https://github.com/llamasearchai/OpenRuntime)
 </div>
 
 ---
@@ -109,8 +109,8 @@ A comprehensive GPU computing and ML inference platform designed specifically fo
 
 ```bash
 # Clone and run in one command
-git clone https://github.com/openruntime/openruntime.git && cd openruntime
-python openruntime.py --host 0.0.0.0 --port 8000
+git clone https://github.com/llamasearchai/OpenRuntime.git && cd OpenRuntime
+python -m openruntime.main --host 0.0.0.0 --port 8000
 ```
 
 Visit `http://localhost:8000` to see the OpenRuntime dashboard.
@@ -125,8 +125,8 @@ Visit `http://localhost:8000` to see the OpenRuntime dashboard.
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/openruntime/openruntime.git
-cd openruntime
+git clone https://github.com/llamasearchai/OpenRuntime.git
+cd OpenRuntime
 ```
 
 2. **Install dependencies:**
@@ -136,29 +136,29 @@ pip install -r requirements.txt
 
 3. **Verify installation:**
 ```bash
-python openruntime.py --help
+python -m openruntime.main --help
 ```
 
 ### Basic Usage
 
 1. **Start the server:**
 ```bash
-python openruntime.py --host 0.0.0.0 --port 8000
+python -m openruntime.main --host 0.0.0.0 --port 8000
 ```
 
 2. **Use the CLI:**
 ```bash
 # Check system status
-python cli_simple.py status
+python openruntime_cli.py status
 
 # List available devices
-python cli_simple.py devices
+python openruntime_cli.py devices
 
 # Run a matrix multiplication benchmark
-python cli_simple.py run --operation mlx_compute --size 2048
+python openruntime_cli.py run --operation compute --size 2048
 
 # Monitor system in real-time
-python cli_simple.py monitor
+python openruntime_cli.py monitor
 ```
 
 3. **Access the API:**

@@ -43,11 +43,11 @@ setup(
     description="Advanced GPU Runtime System with AI Integration",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
-    url="https://github.com/openruntime/openruntime",
+    url="https://github.com/llamasearchai/OpenRuntime",
     project_urls={
-        "Bug Tracker": "https://github.com/openruntime/openruntime/issues",
-        "Documentation": "https://github.com/openruntime/openruntime#readme",
-        "Source Code": "https://github.com/openruntime/openruntime",
+        "Bug Tracker": "https://github.com/llamasearchai/OpenRuntime/issues",
+        "Documentation": "https://github.com/llamasearchai/OpenRuntime#readme",
+        "Source Code": "https://github.com/llamasearchai/OpenRuntime",
     },
     packages=find_packages(),
     classifiers=[
@@ -83,9 +83,9 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "openruntime=cli_simple:main",
-            "openruntime-cli=cli:cli_main",
-            "openruntime-simple=cli_simple:main",
+            "openruntime=openruntime.main:main",
+            "openruntime-cli=openruntime_cli:cli",
+            "openruntime-server=openruntime.main:main",
             "openruntime-benchmark=scripts.benchmark:main",
             "openruntime-stress=scripts.stress_test:main",
         ],

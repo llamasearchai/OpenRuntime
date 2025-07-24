@@ -3,7 +3,7 @@ import argparse
 import uvicorn
 from openruntime.core.api import app
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="OpenRuntime")
     parser.add_argument("--host", default="0.0.0.0", help="Host")
     parser.add_argument("--port", type=int, default=8000, help="Port")
@@ -16,3 +16,6 @@ if __name__ == "__main__":
         port=args.port, 
         reload=args.reload
     )
+
+if __name__ == "__main__":
+    main()

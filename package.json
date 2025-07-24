@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openruntime/openruntime.git"
+    "url": "git+https://github.com/llamasearchai/OpenRuntime.git"
   },
   "keywords": [
     "gpu",
@@ -29,7 +29,7 @@
   "author": "Nik Jois <nikjois@llamasearch.ai>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/openruntime/openruntime/issues"
+    "url": "https://github.com/llamasearchai/OpenRuntime/issues"
   },
-  "homepage": "https://github.com/openruntime/openruntime#readme"
+  "homepage": "https://github.com/llamasearchai/OpenRuntime#readme"
 } 
