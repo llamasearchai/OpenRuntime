@@ -51,8 +51,8 @@ nvidia-smi
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/openruntime.git
-cd openruntime
+git clone https://github.com/llamasearchai/OpenRuntime.git
+cd OpenRuntime
 ```
 
 ### 2. Create Virtual Environment (Recommended)
@@ -141,26 +141,26 @@ export OPENRUNTIME_LOG_LEVEL="INFO"
 
 ```bash
 # Start standard service
-python openruntime_enhanced.py
+python -m openruntime.main
 
 # Specify custom host/port
-python openruntime_enhanced.py --host 0.0.0.0 --port 8080
+python -m openruntime.main --host 0.0.0.0 --port 8080
 
 # Enable debug mode
-python openruntime_enhanced.py --debug
+python -m openruntime.main --debug
 ```
 
 ### Using the CLI
 
 ```bash
 # Start with default settings
-openruntime server start
+python openruntime_cli.py server start
 
 # Start with custom configuration
-openruntime server start --config config/custom.yml
+python openruntime_cli.py server start --config config/custom.yml
 
 # Start in background
-openruntime server start --daemon
+python openruntime_cli.py server start --daemon
 ```
 
 ### Using Docker
@@ -182,7 +182,7 @@ docker run --gpus all -p 8000:8000 openruntime
 
 ```bash
 # Using CLI
-openruntime status
+python openruntime_cli.py status
 
 # Using curl
 curl http://localhost:8000/health
@@ -207,7 +207,7 @@ Expected output:
 
 ```bash
 # Using CLI
-openruntime devices list
+python openruntime_cli.py devices
 
 # Using API
 curl http://localhost:8000/devices
@@ -217,10 +217,10 @@ curl http://localhost:8000/devices
 
 ```bash
 # Simple compute test
-openruntime execute matrix_multiply --size 100
+python openruntime_cli.py run --operation compute --size 100
 
 # AI test
-openruntime ai code_generation "Write a hello world function"
+python openruntime_cli.py ai code_generation "Write a hello world function"
 ```
 
 ## First Steps
@@ -230,7 +230,7 @@ openruntime ai code_generation "Write a hello world function"
 Get a baseline performance measurement:
 
 ```bash
-openruntime benchmark
+python openruntime_cli.py benchmark
 ```
 
 ### 2. Execute Your First Task
@@ -331,6 +331,6 @@ Now that you have OpenRuntime running:
 ## Getting Help
 
 - Check the [FAQ](faq.md)
-- Search [existing issues](https://github.com/your-org/openruntime/issues)
-- Join our [community forum](https://github.com/your-org/openruntime/discussions)
+- Search [existing issues](https://github.com/llamasearchai/OpenRuntime/issues)
+- Join our [community forum](https://github.com/llamasearchai/OpenRuntime/discussions)
 - Contact support: support@openruntime.io

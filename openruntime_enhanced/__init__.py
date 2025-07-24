@@ -6,6 +6,7 @@ including advanced AI workflows, real-time monitoring, and performance optimizat
 """
 
 from .enhanced import app, __version__, __author__, __email__
+from .enhanced import AIAgentManager, EnhancedGPURuntimeManager
 
 # Enhanced features marker
 ENHANCED_FEATURES = True
@@ -15,5 +16,7 @@ __all__ = [
     "__version__",
     "__author__",
     "__email__",
-    "ENHANCED_FEATURES"
+    "ENHANCED_FEATURES",
+    "AIAgentManager",
+    "EnhancedGPURuntimeManager",
 ]

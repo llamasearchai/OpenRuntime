@@ -33,6 +33,13 @@ from pydantic import BaseModel, Field
 # AI Integration
 import openai
 
+# Import core models
+from openruntime.core.models import (
+    DeviceType, TaskStatus, AIProviderType, WorkflowType, AgentRole,
+    GPUDevice, RuntimeMetrics, AIAgent, TaskRequest, TaskResponse,
+    AITaskRequest, ShellCommandRequest, CodeGenerationRequest
+)
+
 # GPU and ML dependencies (mock implementations for compatibility)
 try:
     import mlx.core as mx
@@ -61,124 +68,7 @@ __version__ = "2.0.0"
 __author__ = "Nik Jois"
 __email__ = "nikjois@llamasearch.ai"
 
-# =============================================================================
-# Core Data Models
-# =============================================================================
 
-
-class DeviceType(str, Enum):
-    CPU = "cpu"
-    MLX = "mlx"
-    METAL = "metal"
-    CUDA = "cuda"
-
-
-class TaskStatus(str, Enum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-
-class AIProviderType(str, Enum):
-    OPENAI = "openai"
-    LOCAL = "local"
-
-
-class WorkflowType(str, Enum):
-    COMPUTE_OPTIMIZATION = "compute_optimization"
-    MODEL_INFERENCE = "model_inference"
-    SYSTEM_ANALYSIS = "system_analysis"
-    CODE_GENERATION = "code_generation"
-    SHELL_AUTOMATION = "shell_automation"
-
-
-class AgentRole(str, Enum):
-    PERFORMANCE_OPTIMIZER = "performance_optimizer"
-    SYSTEM_ANALYST = "system_analyst"
-    CODE_GENERATOR = "code_generator"
-    SHELL_EXECUTOR = "shell_executor"
-    WORKFLOW_COORDINATOR = "workflow_coordinator"
-
-
-@dataclass
-class GPUDevice:
-    id: str
-    name: str
-    type: DeviceType
-    memory_total: int
-    memory_available: int
-    compute_units: int
-    is_available: bool = True
-
-
-@dataclass
-class RuntimeMetrics:
-    device_id: str
-    timestamp: datetime
-    memory_usage: float
-    gpu_utilization: float
-    temperature: float
-    power_usage: float
-    throughput: float
-
-
-@dataclass
-class AIAgent:
-    id: str
-    name: str
-    role: AgentRole
-    provider: AIProviderType
-    model: str
-    temperature: float = 0.7
-    max_tokens: int = 2048
-    is_active: bool = True
-    capabilities: List[str] = None
-    system_prompt: str = ""
-
-
-class TaskRequest(BaseModel):
-    task_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()))
-    operation: str = Field(..., description="Operation type: compute, inference, benchmark")
-    data: Dict[str, Any] = Field(default_factory=dict)
-    device_preference: Optional[DeviceType] = None
-    priority: int = Field(default=1, ge=1, le=10)
-
-
-class TaskResponse(BaseModel):
-    task_id: str
-    status: TaskStatus
-    result: Optional[Dict[str, Any]] = None
-    metrics: Optional[Dict[str, float]] = None
-    error: Optional[str] = None
-    execution_time: Optional[float] = None
-
-
-class AITaskRequest(BaseModel):
-    task_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()))
-    workflow_type: WorkflowType
-    prompt: str
-    context: Dict[str, Any] = Field(default_factory=dict)
-    agent_role: Optional[AgentRole] = None
-    temperature: float = Field(default=0.7, ge=0.0, le=2.0)
-    max_tokens: int = Field(default=2048, ge=1, le=8192)
-    stream: bool = False
-
-
-class ShellCommandRequest(BaseModel):
-    command: str
-    use_ai: bool = True
-    context: str = ""
-    safety_check: bool = True
-    timeout: int = 30
-
-
-class CodeGenerationRequest(BaseModel):
-    language: str
-    description: str
-    context: Dict[str, Any] = Field(default_factory=dict)
-    optimization_target: str = "performance"
-    include_tests: bool = True
 
 
 # =============================================================================
@@ -507,7 +397,7 @@ class EnhancedGPURuntimeManager:
         # Combine results
         combined_result = {
             "task_id": task_request.task_id,
-            "gpu_result": asdict(gpu_result) if hasattr(gpu_result, "__dict__") else gpu_result,
+            "gpu_result": gpu_result.model_dump(),
             "ai_result": ai_result,
             "execution_time": time.time() - start_time,
             "enhanced": ai_result is not None,
@@ -740,7 +630,7 @@ async def list_ai_agents():
     return {"agents": agents_info}
 
 
-@app.get("/ai/insights")
+@app.post("/ai/insights")
 async def get_ai_insights():
     """Get AI performance insights"""
     return await enhanced_runtime.get_ai_performance_insights()
@@ -815,9 +705,7 @@ async def create_task(task_request: dict):
     result = await enhanced_runtime.gpu_manager.execute_task(task)
 
     # Convert result to dict if needed
-    if hasattr(result, "__dict__"):
-        return asdict(result)
-    return result
+    return result.model_dump()
 
 
 @app.get("/tasks")

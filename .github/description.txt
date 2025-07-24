@@ -1,0 +1,1 @@
+OpenRuntime: High-performance GPU/Metal runtime for AI workloads with MLX support. Features distributed computing, real-time WebSocket communication, and macOS Metal acceleration.

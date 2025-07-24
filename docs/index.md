@@ -36,8 +36,8 @@ OpenRuntime is a comprehensive runtime system designed to maximize GPU utilizati
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/openruntime.git
-cd openruntime
+git clone https://github.com/llamasearchai/OpenRuntime.git
+cd OpenRuntime
 
 # Install dependencies
 pip install -r requirements.txt
@@ -112,13 +112,13 @@ This documentation is organized into the following sections:
 
 ## Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/your-org/openruntime/issues)
-- **Discussions**: [Community forum](https://github.com/your-org/openruntime/discussions)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/llamasearchai/OpenRuntime/issues)
+- **Discussions**: [Community forum](https://github.com/llamasearchai/OpenRuntime/discussions)
 - **Email**: support@openruntime.io
 
 ## License
 
-OpenRuntime is licensed under the MIT License. See [LICENSE](https://github.com/your-org/openruntime/blob/main/LICENSE) for details.
+OpenRuntime is licensed under the MIT License. See [LICENSE](https://github.com/llamasearchai/OpenRuntime/blob/main/LICENSE) for details.
 
 ---
 

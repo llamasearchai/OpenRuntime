@@ -151,35 +151,6 @@ Submit a compute task for execution.
 }
 ```
 
-#### GET /tasks/enhanced
-
-Get enhanced task information with detailed metrics.
-
-**Query Parameters:**
-- `limit` (integer, optional): Number of tasks to return (default: 100)
-- `offset` (integer, optional): Offset for pagination
-
-**Response:**
-```json
-{
-  "tasks": [
-    {
-      "task_id": "task_1234567890",
-      "operation": "matrix_multiply",
-      "status": "completed",
-      "performance_metrics": {
-        "execution_time_ms": 523,
-        "memory_used_mb": 256.5,
-        "gpu_utilization": 87.3
-      },
-      "timestamp": "2024-01-01T00:00:00Z"
-    }
-  ],
-  "total_count": 1250,
-  "timestamp": "2024-01-01T00:00:00Z"
-}
-```
-
 ### AI Operations
 
 #### GET /ai/agents
@@ -296,9 +267,9 @@ const ws = new WebSocket('ws://localhost:8000/ws');
 1. **Connected Message** (received on connection):
 ```json
 {
-  "type": "connected",
+  "type": "connection_established",
   "timestamp": "2024-01-01T00:00:00Z",
-  "message": "Connected to OpenRuntime WebSocket"
+  "message": "Connected to OpenRuntime WebSocket. Awaiting data streams..."
 }
 ```
 
@@ -425,12 +396,3 @@ ws.onmessage = (event) => {
   console.log('Received:', data);
 };
 ```
-
-## SDK Support
-
-Official SDKs are available for:
-- Python: `pip install openruntime-sdk`
-- JavaScript/TypeScript: `npm install @openruntime/sdk`
-- Go: `go get github.com/openruntime/sdk-go`
-
-See [SDK Documentation](sdks/index.md) for detailed usage.

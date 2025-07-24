@@ -23,10 +23,10 @@ First, let's start the OpenRuntime service:
 
 ```bash
 # Start the service
-python openruntime_enhanced.py
+python -m openruntime.main
 
 # Or use the CLI
-openruntime server start
+python openruntime_cli.py server start
 ```
 
 You should see output like:
@@ -46,7 +46,7 @@ Open a new terminal and check the service status:
 
 ```bash
 # Using CLI
-openruntime status
+python openruntime_cli.py status
 
 # Using curl
 curl http://localhost:8000/health
@@ -74,7 +74,7 @@ Let's submit a simple matrix multiplication task.
 ### Using the CLI
 
 ```bash
-openruntime execute matrix_multiply --size 1000
+python openruntime_cli.py run --operation compute --size 1000
 ```
 
 ### Using Python
@@ -351,7 +351,7 @@ Connection refused to http://localhost:8000
 **Solution**: Ensure the service is running:
 ```bash
 ps aux | grep openruntime
-openruntime server start
+python openruntime_cli.py server start
 ```
 
 ### Task Timeout
@@ -373,7 +373,7 @@ task = {
 
 **Solution**: Check available memory and reduce task size:
 ```bash
-openruntime status --detailed
+python openruntime_cli.py status --detailed
 ```
 
 ## Next Steps

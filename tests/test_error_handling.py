@@ -120,10 +120,8 @@ class TestErrorHandling:
         assert response.status_code == 200
         # Should either complete or timeout gracefully
     
-    def test_websocket_connection_error(self):
+    def test_websocket_connection_error(self, client):
         """Test WebSocket behavior during connection errors."""
-        client = TestClient(app)
-        
         # Test invalid WebSocket endpoint
         with pytest.raises(Exception):
             with client.websocket_connect("/invalid_ws"):

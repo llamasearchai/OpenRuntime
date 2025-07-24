@@ -119,5 +119,5 @@ We welcome tutorial contributions! See our [Tutorial Writing Guide](writing-guid
 
 If you have questions about the tutorials:
 - Check the [FAQ](faq.md)
-- Ask in [Discussions](https://github.com/your-org/openruntime/discussions)
-- Report issues in [GitHub Issues](https://github.com/your-org/openruntime/issues)
+- Ask in [Discussions](https://github.com/llamasearchai/OpenRuntime/discussions)
+- Report issues in [GitHub Issues](https://github.com/llamasearchai/OpenRuntime/issues)

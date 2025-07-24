@@ -3,8 +3,8 @@
 # Site settings
 title: OpenRuntime Documentation
 description: High-performance GPU runtime with integrated AI capabilities
-baseurl: "/openruntime"
-url: "https://your-org.github.io"
+baseurl: "/OpenRuntime" # The subpath of your site, e.g. /blog
+url: "https://llamasearchai.github.io" # The base hostname & protocol for your site, e.g. http://example.com
 
 # Theme
 theme: jekyll-theme-minimal
@@ -35,11 +35,11 @@ navigation:
 # Footer
 footer_links:
   - title: GitHub
-    url: https://github.com/your-org/openruntime
+    url: https://github.com/llamasearchai/OpenRuntime
   - title: Issues
-    url: https://github.com/your-org/openruntime/issues
+    url: https://github.com/llamasearchai/OpenRuntime/issues
   - title: Discussions
-    url: https://github.com/your-org/openruntime/discussions
+    url: https://github.com/llamasearchai/OpenRuntime/discussions
 
 # SEO
 twitter:

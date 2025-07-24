@@ -76,6 +76,7 @@ class AIAgent:
     role: AgentRole
     provider: AIProviderType
     model: str
+    description: str = ""
     temperature: float = 0.7
     max_tokens: int = 2048
     is_active: bool = True

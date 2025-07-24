@@ -14,8 +14,8 @@ websockets>=11.0.0
 
 # AI and ML
 openai>=1.35.0
-langchain==0.0.353
-langchain-openai==0.0.8
+langchain
+langchain-openai
 
 # Async support
 aiofiles>=23.0.0

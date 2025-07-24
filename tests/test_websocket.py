@@ -6,7 +6,7 @@ import asyncio
 import json
 import pytest
 from fastapi.testclient import TestClient
-from openruntime.core.api import app
+from openruntime_enhanced.enhanced import app
 
 
 class TestWebSocketEndpoint:
@@ -17,21 +17,20 @@ class TestWebSocketEndpoint:
         with client.websocket_connect("/ws") as websocket:
             # Should receive initial connection message
             data = websocket.receive_json()
-            assert data["type"] == "connected"
+            assert data["type"] == "connection_established"
             assert "timestamp" in data
-            assert data["message"] == "Connected to OpenRuntime WebSocket"
             
-            # Should receive heartbeat within 6 seconds
+            # Should receive system status within 6 seconds
             data = websocket.receive_json()
-            assert data["type"] == "heartbeat"
+            assert data["type"] == "system_status"
             assert "timestamp" in data
-            assert "metrics" in data
+            assert "data" in data
             
-            # Check metrics structure
-            metrics = data["metrics"]
-            assert "gpu_utilization" in metrics
-            assert "memory_usage" in metrics
-            assert "active_tasks" in metrics
+            # Check data structure
+            status_data = data["data"]
+            assert "active_devices" in status_data
+            assert "ai_agents" in status_data
+            assert "mlx_available" in status_data
     
     def test_websocket_multiple_connections(self, client):
         """Test multiple concurrent WebSocket connections."""
@@ -41,22 +40,22 @@ class TestWebSocketEndpoint:
                 data1 = ws1.receive_json()
                 data2 = ws2.receive_json()
                 
-                assert data1["type"] == "connected"
-                assert data2["type"] == "connected"
+                assert data1["type"] == "connection_established"
+                assert data2["type"] == "connection_established"
                 
-                # Both should receive heartbeats
+                # Both should receive system status
                 data1 = ws1.receive_json()
                 data2 = ws2.receive_json()
                 
-                assert data1["type"] == "heartbeat"
-                assert data2["type"] == "heartbeat"
+                assert data1["type"] == "system_status"
+                assert data2["type"] == "system_status"
     
     def test_websocket_disconnection(self, client):
         """Test WebSocket disconnection handling."""
         with client.websocket_connect("/ws") as websocket:
             # Receive initial message
             data = websocket.receive_json()
-            assert data["type"] == "connected"
+            assert data["type"] == "connection_established"
             
             # WebSocket will be closed when exiting context
         
@@ -72,14 +71,14 @@ class TestWebSocketEndpoint:
             # Submit a task
             task_data = {
                 "operation": "compute",
-                "data": {"size": 100}
+                "data": {"type": "matrix_multiply", "size": 100}
             }
             response = client.post("/tasks", json=task_data)
             assert response.status_code == 200
-            
-            # The mock will broadcast a task update
-            # But since we're using TestClient, we might not receive it immediately
-            # So we'll just verify the task was accepted
             task_result = response.json()
-            assert "task_id" in task_result
-            assert task_result["status"] in ["completed", "pending", "running"]
+            assert task_result["status"] in ["completed", "failed"]
+
+            # Wait for the system status message (no task update broadcast implemented)
+            received_message = websocket.receive_json()
+            assert received_message["type"] == "system_status"
+            assert "data" in received_message

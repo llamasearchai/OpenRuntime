@@ -19,7 +19,7 @@ The OpenRuntime CLI is installed automatically when you install the main package
 pip install openruntime
 
 # Verify installation
-openruntime --version
+python -m openruntime_cli --version
 ```
 
 ### Available CLIs
@@ -66,20 +66,13 @@ openruntime execute --help
 Start the OpenRuntime service.
 
 ```bash
-openruntime server start [OPTIONS]
-
-Options:
-  --host TEXT       Host to bind to [default: 0.0.0.0]
-  --port INTEGER    Port to bind to [default: 8000]
-  --workers INTEGER Number of worker processes [default: 4]
-  --daemon          Run in background
-  --log-level TEXT  Logging level [default: INFO]
+python -m openruntime.main --host 0.0.0.0 --port 8000
 ```
 
 Examples:
 ```bash
 # Start with defaults
-openruntime server start
+python -m openruntime.main --host 0.0.0.0 --port 8000
 
 # Start on custom port
 openruntime server start --port 8080
@@ -361,7 +354,7 @@ export OPENRUNTIME_DEBUG="1"
 
 ```bash
 # Start service
-openruntime server start
+python -m openruntime.main --host 0.0.0.0 --port 8000 &
 
 # Check status
 openruntime status
@@ -377,13 +370,13 @@ openruntime ai system_analysis "Analyze the benchmark results" < results.json
 
 ```bash
 # Generate code
-openruntime ai code_generation "Create a neural network training script" --save train.py
+python openruntime_cli.py ai code_generation "Create a Python web scraper"
 
 # Optimize the code
 openruntime ai optimization "Optimize for GPU performance" < train.py --save train_optimized.py
 
 # Test performance
-openruntime execute compute --size 10000
+python openruntime_cli.py run --operation compute --size 10000
 ```
 
 #### 3. Monitoring Workflow
@@ -410,7 +403,7 @@ openruntime ai insights --metric performance --timeframe 1h
 # Process multiple tasks
 for size in 100 500 1000 2000 5000; do
   echo "Processing size: $size"
-  openruntime execute matrix_multiply --size $size --json | \
+  python openruntime_cli.py run --operation matrix_multiply --size $size --json | \
     jq -r '.execution_time'
 done
 ```
@@ -422,7 +415,7 @@ done
 # health_check.sh
 
 while true; do
-  if ! openruntime status --json | jq -e '.status == "healthy"' > /dev/null; then
+  if ! python openruntime_cli.py status --json | jq -e '.status == "healthy"' > /dev/null; then
     echo "Service unhealthy!"
     # Send alert
   fi
@@ -436,36 +429,36 @@ done
 
 ```bash
 # Pipe AI output to another command
-openruntime ai code_generation "SQL query optimizer" | python
+python openruntime_cli.py ai code_generation "SQL query optimizer" | python
 
 # Save metrics to file
-openruntime status --json > metrics.json
+python openruntime_cli.py status --json > metrics.json
 
 # Process log output
-openruntime logs --follow | grep ERROR | tee errors.log
+python openruntime_cli.py logs --follow | grep ERROR | tee errors.log
 ```
 
 ### JSON Processing with jq
 
 ```bash
 # Extract execution time
-openruntime execute matrix_multiply --size 1000 --json | jq '.execution_time'
+python openruntime_cli.py run --operation matrix_multiply --size 1000 --json | jq '.execution_time'
 
 # Get GPU utilization
-openruntime status --json | jq '.metrics.gpu_utilization'
+python openruntime_cli.py status --json | jq '.metrics.gpu_utilization'
 
 # List device IDs
-openruntime devices --json | jq -r '.devices[].id'
+python openruntime_cli.py devices --json | jq -r '.devices[].id'
 ```
 
 ### Automation with cron
 
 ```cron
 # Run benchmark every hour
-0 * * * * /usr/local/bin/openruntime benchmark --output /var/log/openruntime/bench_$(date +\%Y\%m\%d_\%H).json
+0 * * * * /usr/local/bin/python /usr/local/bin/openruntime_cli.py benchmark --output /var/log/openruntime/bench_$(date +\%Y\%m\%d_\%H).json
 
 # Generate daily report
-0 0 * * * /usr/local/bin/openruntime ai insights --timeframe 24h > /var/reports/daily_$(date +\%Y\%m\%d).txt
+0 0 * * * /usr/local/bin/python /usr/local/bin/openruntime_cli.py ai insights --timeframe 24h > /var/reports/daily_$(date +\%Y\%m\%d).txt
 ```
 
 ### Custom Aliases
@@ -474,19 +467,19 @@ Add to `~/.bashrc` or `~/.zshrc`:
 
 ```bash
 # Quick status
-alias ors='openruntime status'
+alias ors='python openruntime_cli.py status'
 
 # Quick benchmark
-alias orb='openruntime benchmark'
+alias orb='python openruntime_cli.py benchmark'
 
 # AI code helper
 orai() {
-  openruntime ai code_generation "$*" | tee generated_$(date +%s).py
+  python openruntime_cli.py ai code_generation "$*" | tee generated_$(date +%s).py
 }
 
 # Execute with timing
 orexec() {
-  time openruntime execute "$@"
+  time python openruntime_cli.py run "$@"
 }
 ```
 
@@ -497,10 +490,10 @@ orexec() {
 1. **Connection refused**
    ```bash
    # Check if service is running
-   openruntime server status
+   python openruntime_cli.py status
    
    # Check URL
-   openruntime --url http://localhost:8001 status
+   python openruntime_cli.py --url http://localhost:8001 status
    ```
 
 2. **Command not found**
@@ -509,16 +502,16 @@ orexec() {
    pip show openruntime
    
    # Check PATH
-   which openruntime
+   which openruntime_cli.py
    ```
 
 3. **Slow performance**
    ```bash
    # Check system load
-   openruntime status --detailed
+   python openruntime_cli.py status --detailed
    
    # Run diagnostics
-   openruntime diagnose
+   python openruntime_cli.py diagnose
    ```
 
 ### Debug Mode
@@ -527,11 +520,11 @@ Enable detailed debug output:
 
 ```bash
 # Via flag
-openruntime --debug execute matrix_multiply --size 1000
+python openruntime_cli.py --debug run --operation matrix_multiply --size 1000
 
 # Via environment
 export OPENRUNTIME_DEBUG=1
-openruntime status
+python openruntime_cli.py status
 ```
 
 ## Tips and Best Practices

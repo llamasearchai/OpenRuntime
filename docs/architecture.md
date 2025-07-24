@@ -393,24 +393,60 @@ class MetricsExporter(ABC):
         pass
 ```
 
+## External Integrations
+
+- **OpenAI**: Integrates with OpenAI's API for AI-powered tasks.
+  - *Reference*: [OpenAI API Documentation](https://platform.openai.com/docs/)
+- **LangChain**: Utilized for building advanced AI workflows.
+  - *Reference*: [LangChain Documentation](https://python.langchain.com/)
+- **MLX**: Apple's machine learning framework for Metal.
+  - *Reference*: [MLX GitHub Repository](https://github.com/ml-explore/mlx)
+- **PyTorch**: Popular open-source machine learning framework.
+  - *Reference*: [PyTorch Documentation](https://pytorch.org/docs/stable/index.html)
+
+## Repository and Documentation
+
+- **GitHub Repository**: [llamasearchai/OpenRuntime](https://github.com/llamasearchai/OpenRuntime)
+- **Documentation Source**: `docs/` directory within the repository
+- **CI/CD for Docs**: Automated deployment via GitHub Actions (see `.github/workflows/docs.yml`)
+
+## Troubleshooting
+
+### Common Issues
+
+- **GPU Not Detected**: Ensure Metal is properly installed and drivers are up to date.
+  - *Solution*: Check system compatibility, reinstall Xcode Command Line Tools.
+- **AI Agent Errors**: Verify OpenAI API key and network connectivity.
+  - *Solution*: Double-check API key, ensure outbound access to OpenAI endpoints.
+- **Performance Degradation**: Review monitoring dashboards for bottlenecks.
+  - *Solution*: Adjust task concurrency, optimize batch sizes.
+
+### Debugging Architecture Components
+
+- **API Layer**: Use FastAPI's debug mode and Uvicorn's `--log-level debug`.
+- **Runtime Managers**: Enable verbose logging for detailed execution traces.
+- **AI Agents**: Monitor agent interactions and prompt/response flows.
+
 ## Future Enhancements
 
-1. **Multi-GPU Support**
-   - GPU clustering
-   - Cross-GPU communication
-   - Distributed training support
+### Scalability Improvements
 
-2. **Advanced AI Features**
-   - Local model hosting
-   - Fine-tuning capabilities
-   - Model versioning
+- **Distributed Task Queue**: Implement a distributed message queue for enhanced task distribution (e.g., Kafka, RabbitMQ).
+- **Kubernetes Integration**: Refine Kubernetes deployment for auto-scaling and high availability.
+- **Multi-Cloud Support**: Extend deployment options to AWS, GCP, Azure.
 
-3. **Enhanced Monitoring**
-   - Distributed tracing
-   - Performance profiling
-   - Anomaly detection
+### AI Enhancements
 
-4. **Federation Support**
-   - Multi-cluster management
-   - Cross-region deployment
-   - Edge computing integration
+- **Custom Agent Training**: Allow users to train custom AI agents based on their data.
+- **Model Fine-tuning**: Support for fine-tuning pre-trained MLX and PyTorch models.
+- **Advanced AI Workflows**: More complex, multi-step AI-powered automation.
+
+### GPU Feature Expansion
+
+- **Vulkan Backend**: Support for Vulkan API on compatible GPUs.
+- **OpenCL Backend**: Broaden compatibility with OpenCL-enabled devices.
+- **Ray Integration**: Distributed computing with Ray for larger workloads.
+
+## Conclusion
+
+The OpenRuntime architecture is designed for high performance, modularity, and extensibility, providing a robust foundation for GPU computing and AI integration on macOS.

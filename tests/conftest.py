@@ -8,7 +8,7 @@ import asyncio
 from httpx import AsyncClient
 from fastapi.testclient import TestClient
 
-from openruntime_enhanced import app
+from openruntime_enhanced.enhanced import app
 
 
 @pytest.fixture
@@ -19,8 +19,8 @@ def client():
 
 @pytest.fixture
 def async_client():
-    """Create asynchronous test client"""
-    return AsyncClient(app=app, base_url="http://test")
+    """Create asynchronous test client using TestClient"""
+    return TestClient(app)
 
 
 # Mock environment variables for testing
