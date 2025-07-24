@@ -136,7 +136,25 @@ def status(ctx):
 @click.pass_context
 def run(ctx, operation, size, ai_workflow, ai_prompt):
     """Run a computational task, with optional AI enhancement."""
-    gpu_task = {"operation": operation, "data": {"size": size}}
+    # Construct proper task data based on operation type
+    if operation == "compute":
+        gpu_task = {
+            "operation": operation, 
+            "data": {
+                "type": "matrix_multiply",  # Add the missing compute type
+                "size": size
+            }
+        }
+    elif operation == "inference":
+        gpu_task = {
+            "operation": operation,
+            "data": {
+                "model": "resnet50",
+                "batch_size": 1
+            }
+        }
+    else:
+        gpu_task = {"operation": operation, "data": {"size": size}}
     
     async def _run():
         async with OpenRuntimeCLI(ctx.obj["URL"]) as client:
@@ -170,13 +188,24 @@ def ai(ctx, workflow, prompt):
     asyncio.run(_run())
 
 
-@cli.command()
+@cli.group()
 def server():
     """Start the OpenRuntime server."""
+    pass
+
+@server.command()
+@click.option("--host", default="0.0.0.0", help="Host to bind to")
+@click.option("--port", default=8000, help="Port to bind to")
+@click.option("--reload", is_flag=True, help="Enable auto-reload")
+def start(host, port, reload):
+    """Start the OpenRuntime server."""
     import subprocess
-    console.print("[bold blue]Starting OpenRuntime server...[/bold blue]")
+    console.print(f"[bold blue]Starting OpenRuntime server on {host}:{port}...[/bold blue]")
     try:
-        subprocess.run([sys.executable, "-m", "openruntime.main"], check=True)
+        cmd = [sys.executable, "-m", "openruntime.main", "--host", host, "--port", str(port)]
+        if reload:
+            cmd.append("--reload")
+        subprocess.run(cmd, check=True)
     except KeyboardInterrupt:
         console.print("\n[yellow]Server stopped.[/yellow]")
     except Exception as e:

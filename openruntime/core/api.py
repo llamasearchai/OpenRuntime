@@ -62,7 +62,20 @@ async def root():
 @app.post("/tasks", response_model=TaskResponse)
 async def create_task(task: TaskRequest, background_tasks: BackgroundTasks):
     result = await app.state.runtime_manager.execute_task(task)
-    await websocket_manager.broadcast({"type": "task_update", "data": result.model_dump()})
+    
+    # Handle both Pydantic v1 and v2 models for broadcasting
+    try:
+        # Try Pydantic v2 method first
+        result_data = result.model_dump()
+    except AttributeError:
+        try:
+            # Fall back to Pydantic v1 method
+            result_data = result.dict()
+        except AttributeError:
+            # Fall back to dataclass conversion
+            result_data = asdict(result) if hasattr(result, '__dataclass_fields__') else result.__dict__
+    
+    await websocket_manager.broadcast({"type": "task_update", "data": result_data})
     return result
 
 @app.get("/devices")
