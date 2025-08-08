@@ -9,8 +9,8 @@ import os
 import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Union
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse

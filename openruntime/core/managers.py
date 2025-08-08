@@ -367,7 +367,7 @@ class GPURuntimeManager:
             memory_available=24 * 1024**3,
             compute_units=os.cpu_count() or 8,
         )
-        logger.info(f"Initialized CPU device.")
+        logger.info("Initialized CPU device.")
 
     def _start_monitoring(self):
         def monitor_loop():

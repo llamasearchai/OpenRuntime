@@ -6,6 +6,7 @@ Advanced GPU Runtime System for macOS with MLX Metal integration
 
 import os
 import sys
+
 from dotenv import load_dotenv
 
 # Add the parent directory to the path so we can import the module
