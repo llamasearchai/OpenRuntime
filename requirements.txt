@@ -6,15 +6,15 @@ uvicorn[standard]>=0.24.0
 # Pinned to Pydantic v1 for compatibility with langchain and langchain_openai
 pydantic==1.10.14
 
-# HTTP client
-httpx>=0.25.0
+# HTTP client (pin below 0.28 to maintain compatibility with starlette TestClient)
+httpx>=0.25.0,<0.28
 
 # WebSocket support
 websockets>=11.0.0
 
 # AI and ML
-openai>=1.35.0
-openai-agents>=0.1.0
+openai>=1.99.0
+openai-agents==0.2.5
 langchain
 langchain-openai
 llm>=0.26.0
