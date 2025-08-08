@@ -3,10 +3,11 @@
 Pytest configuration and shared fixtures for OpenRuntime Enhanced tests
 """
 
-import pytest
 import asyncio
-from httpx import AsyncClient
+
+import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 from openruntime_enhanced.enhanced import app
 

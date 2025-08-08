@@ -1,8 +1,8 @@
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
-import uuid
 
 from pydantic import BaseModel, Field
 
@@ -86,7 +86,9 @@ class AIAgent:
 
 class TaskRequest(BaseModel):
     task_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()))
-    operation: str = Field(..., description="Operation type: compute, inference, benchmark, mlx_compute")
+    operation: str = Field(
+        ..., description="Operation type: compute, inference, benchmark, mlx_compute"
+    )
     data: Dict[str, Any] = Field(default_factory=dict)
     device_preference: Optional[DeviceType] = None
     priority: int = Field(default=1, ge=1, le=10)

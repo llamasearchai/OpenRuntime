@@ -3,14 +3,15 @@
 Performance and Load Testing Suite for OpenRuntime Enhanced
 """
 
-import pytest
 import asyncio
-import time
 import statistics
+import time
 from concurrent.futures import ThreadPoolExecutor
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
 
-from openruntime_enhanced.enhanced import app, enhanced_runtime, AITaskRequest, WorkflowType
+import pytest
+
+from openruntime_enhanced.enhanced import AITaskRequest, WorkflowType, app, enhanced_runtime
 
 
 class TestPerformanceBenchmarks:
@@ -25,7 +26,11 @@ class TestPerformanceBenchmarks:
             start_time = time.time()
 
             for i in range(20):
-                task_data = {"workflow_type": "system_analysis", "prompt": f"Quick analysis task {i}", "max_tokens": 100}
+                task_data = {
+                    "workflow_type": "system_analysis",
+                    "prompt": f"Quick analysis task {i}",
+                    "max_tokens": 100,
+                }
                 tasks.append(client.post("/ai/tasks", json=task_data))
 
             with patch.object(enhanced_runtime.ai_manager, "execute_ai_task") as mock_execute:
@@ -59,7 +64,11 @@ class TestPerformanceBenchmarks:
             for _ in range(10):
                 start_time = time.time()
 
-                task_data = {"operation": "compute", "data": {"type": "matrix_multiply", "size": 512}, "priority": 1}
+                task_data = {
+                    "operation": "compute",
+                    "data": {"type": "matrix_multiply", "size": 512},
+                    "priority": 1,
+                }
 
                 response = await client.post("/tasks", json=task_data)
                 end_time = time.time()
@@ -86,7 +95,11 @@ class TestPerformanceBenchmarks:
 
             # AI tasks
             for i in range(10):
-                task_data = {"workflow_type": "code_generation", "prompt": f"Generate function {i}", "max_tokens": 200}
+                task_data = {
+                    "workflow_type": "code_generation",
+                    "prompt": f"Generate function {i}",
+                    "max_tokens": 200,
+                }
                 ai_tasks.append(client.post("/ai/tasks", json=task_data))
 
             # GPU tasks
@@ -118,8 +131,9 @@ class TestPerformanceBenchmarks:
 
     def test_memory_usage_stability(self):
         """Test memory usage remains stable under load"""
-        import psutil
         import gc
+
+        import psutil
 
         process = psutil.Process()
         initial_memory = process.memory_info().rss
@@ -161,7 +175,11 @@ class TestScalabilityTests:
             tasks = []
 
             for i in range(50):
-                task_data = {"workflow_type": "system_analysis", "prompt": f"Analysis {i}", "max_tokens": 50}
+                task_data = {
+                    "workflow_type": "system_analysis",
+                    "prompt": f"Analysis {i}",
+                    "max_tokens": 50,
+                }
                 tasks.append(client.post("/ai/tasks", json=task_data))
 
             with patch.object(enhanced_runtime.ai_manager, "execute_ai_task") as mock_execute:
@@ -228,8 +246,8 @@ class TestScalabilityTests:
 
     def test_resource_cleanup(self):
         """Test proper resource cleanup"""
-        import threading
         import gc
+        import threading
 
         initial_thread_count = threading.active_count()
 
@@ -268,7 +286,11 @@ class TestStressTests:
             tasks = []
 
             for i in range(30):
-                task_data = {"workflow_type": "shell_automation", "prompt": f"Command {i}", "max_tokens": 100}
+                task_data = {
+                    "workflow_type": "shell_automation",
+                    "prompt": f"Command {i}",
+                    "max_tokens": 100,
+                }
                 tasks.append(client.post("/ai/tasks", json=task_data))
 
             with patch.object(enhanced_runtime.ai_manager, "execute_ai_task") as mock_execute:
@@ -300,7 +322,11 @@ class TestStressTests:
             tasks = []
 
             for i in range(20):
-                task_data = {"workflow_type": "code_generation", "prompt": f"Complex generation {i}", "max_tokens": 1000}
+                task_data = {
+                    "workflow_type": "code_generation",
+                    "prompt": f"Complex generation {i}",
+                    "max_tokens": 1000,
+                }
                 tasks.append(client.post("/ai/tasks", json=task_data))
 
             with patch.object(enhanced_runtime.ai_manager, "execute_ai_task") as mock_execute:

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import argparse
+
 import uvicorn
+
 from openruntime.core.api import app
+
 
 def main():
     parser = argparse.ArgumentParser(description="OpenRuntime")
@@ -10,12 +13,8 @@ def main():
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
     args = parser.parse_args()
 
-    uvicorn.run(
-        "openruntime.core.api:app", 
-        host=args.host, 
-        port=args.port, 
-        reload=args.reload
-    )
+    uvicorn.run("openruntime.core.api:app", host=args.host, port=args.port, reload=args.reload)
+
 
 if __name__ == "__main__":
     main()

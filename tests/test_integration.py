@@ -3,12 +3,13 @@
 Integration tests for OpenRuntime Enhanced
 """
 
-import pytest
 import asyncio
 import json
 import time
+from unittest.mock import MagicMock, patch
+
+import pytest
 from httpx import AsyncClient
-from unittest.mock import patch, MagicMock
 
 from openruntime_enhanced import app
 
@@ -34,7 +35,11 @@ class TestFullIntegration:
 
             # Step 3: Create enhanced task
             task_data = {
-                "gpu_task": {"operation": "benchmark", "data": {"type": "comprehensive"}, "priority": 1},
+                "gpu_task": {
+                    "operation": "benchmark",
+                    "data": {"type": "comprehensive"},
+                    "priority": 1,
+                },
                 "ai_task": {
                     "workflow_type": "system_analysis",
                     "prompt": "Analyze benchmark results and provide optimization recommendations",
@@ -47,11 +52,16 @@ class TestFullIntegration:
                     return {
                         "gpu_task": {
                             "status": "completed",
-                            "result": {"benchmark_type": "comprehensive", "scores": {"compute": 85.5}},
+                            "result": {
+                                "benchmark_type": "comprehensive",
+                                "scores": {"compute": 85.5},
+                            },
                             "execution_time": 2.5,
                         },
                         "ai_analysis": {
-                            "result": {"analysis": "Good performance, consider GPU memory optimization"},
+                            "result": {
+                                "analysis": "Good performance, consider GPU memory optimization"
+                            },
                             "execution_time": 1.2,
                         },
                         "execution_time": 3.7,
@@ -74,7 +84,11 @@ class TestFullIntegration:
             code_request = {
                 "language": "cuda",
                 "description": "Matrix multiplication kernel optimized for GPU",
-                "context": {"target_gpu": "nvidia_rtx4090", "matrix_size": "large", "precision": "float32"},
+                "context": {
+                    "target_gpu": "nvidia_rtx4090",
+                    "matrix_size": "large",
+                    "precision": "float32",
+                },
                 "optimization_target": "performance",
                 "include_tests": True,
             }
@@ -146,7 +160,11 @@ class TestFullIntegration:
             with patch("openruntime_enhanced.enhanced_runtime") as mock_runtime:
 
                 async def mock_execute_ai_task(*args, **kwargs):
-                    return {"task_id": "test-task", "result": {"analysis": "Test analysis"}, "execution_time": 0.5}
+                    return {
+                        "task_id": "test-task",
+                        "result": {"analysis": "Test analysis"},
+                        "execution_time": 0.5,
+                    }
 
                 mock_runtime.ai_manager.execute_ai_task = mock_execute_ai_task
 
@@ -176,7 +194,10 @@ class TestFullIntegration:
         large_task = {
             "workflow_type": "code_generation",
             "prompt": "Generate a complete machine learning pipeline " * 50,  # Large prompt
-            "context": {"complexity": "high", "requirements": ["performance", "scalability", "maintainability"]},
+            "context": {
+                "complexity": "high",
+                "requirements": ["performance", "scalability", "maintainability"],
+            },
             "max_tokens": 4000,
         }
 
@@ -185,7 +206,11 @@ class TestFullIntegration:
             async def mock_execute_ai_task(*args, **kwargs):
                 return {
                     "task_id": "large-task-123",
-                    "result": {"type": "code_generation", "code": "# Generated ML pipeline code", "complexity_handled": True},
+                    "result": {
+                        "type": "code_generation",
+                        "code": "# Generated ML pipeline code",
+                        "complexity_handled": True,
+                    },
                     "execution_time": 15.0,
                 }
 

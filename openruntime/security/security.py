@@ -112,7 +112,12 @@ class SecurityManager:
         """Initialize rate limiting rules"""
         return [
             RateLimitRule(
-                name="api_general", max_requests=100, time_window=60, block_duration=300, endpoints=["*"], user_specific=True
+                name="api_general",
+                max_requests=100,
+                time_window=60,
+                block_duration=300,
+                endpoints=["*"],
+                user_specific=True,
             ),
             RateLimitRule(
                 name="ai_tasks",
@@ -197,12 +202,18 @@ class SecurityManager:
         """Verify and decode JWT token"""
         try:
             if token in self.blocked_tokens:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked"
+                )
 
-            payload = jwt.decode(token, self.config.jwt_secret, algorithms=[self.config.jwt_algorithm])
+            payload = jwt.decode(
+                token, self.config.jwt_secret, algorithms=[self.config.jwt_algorithm]
+            )
             return payload
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
+            )
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
@@ -210,13 +221,18 @@ class SecurityManager:
         """Add token to blacklist"""
         try:
             payload = jwt.decode(
-                token, self.config.jwt_secret, algorithms=[self.config.jwt_algorithm], options={"verify_exp": False}
+                token,
+                self.config.jwt_secret,
+                algorithms=[self.config.jwt_algorithm],
+                options={"verify_exp": False},
             )
             self.blocked_tokens.add(payload.get("jti", token))
         except:
             self.blocked_tokens.add(token)
 
-    def check_permissions(self, required_permissions: List[str], user_permissions: List[str]) -> bool:
+    def check_permissions(
+        self, required_permissions: List[str], user_permissions: List[str]
+    ) -> bool:
         """Check if user has required permissions"""
         if "admin" in user_permissions:
             return True
@@ -272,7 +288,9 @@ class SecurityManager:
         else:
             self._rate_limit_cache[key] = {"count": 1, "timestamp": time.time()}
 
-    def _get_rate_limit_key(self, rule: RateLimitRule, client_ip: str, user_id: Optional[str]) -> str:
+    def _get_rate_limit_key(
+        self, rule: RateLimitRule, client_ip: str, user_id: Optional[str]
+    ) -> str:
         """Generate rate limit key"""
         if rule.user_specific and user_id:
             return f"rate_limit:{rule.name}:user:{user_id}"
@@ -451,7 +469,9 @@ class SecurityManager:
 
     def get_security_summary(self) -> Dict:
         """Get security events summary"""
-        recent_events = [e for e in self.security_events if e.timestamp > datetime.utcnow() - timedelta(hours=24)]
+        recent_events = [
+            e for e in self.security_events if e.timestamp > datetime.utcnow() - timedelta(hours=24)
+        ]
 
         summary = {
             "total_events_24h": len(recent_events),
@@ -468,14 +488,18 @@ class SecurityManager:
 
             # Count severity levels
             severity = event.severity.value
-            summary["severity_breakdown"][severity] = summary["severity_breakdown"].get(severity, 0) + 1
+            summary["severity_breakdown"][severity] = (
+                summary["severity_breakdown"].get(severity, 0) + 1
+            )
 
             # Count source IPs
             ip = event.source_ip
             summary["top_source_ips"][ip] = summary["top_source_ips"].get(ip, 0) + 1
 
         # Sort top IPs
-        summary["top_source_ips"] = dict(sorted(summary["top_source_ips"].items(), key=lambda x: x[1], reverse=True)[:10])
+        summary["top_source_ips"] = dict(
+            sorted(summary["top_source_ips"].items(), key=lambda x: x[1], reverse=True)[:10]
+        )
 
         return summary
 
@@ -492,16 +516,23 @@ class SecurityMiddleware:
     async def __call__(self, request: Request, call_next):
         # Validate request source
         if not self.security_manager.validate_request_source(request):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Request blocked by security policy")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Request blocked by security policy"
+            )
 
         # Check rate limits
         if not await self.security_manager.check_rate_limit(request):
-            raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit exceeded")
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit exceeded"
+            )
 
         # Scan for threats (basic scan without body)
         threats = await self.security_manager.scan_for_threats(request)
         if threats:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Request blocked due to security threat")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Request blocked due to security threat",
+            )
 
         response = await call_next(request)
         return response

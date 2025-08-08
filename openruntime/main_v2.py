@@ -13,8 +13,7 @@ import uvicorn
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -27,20 +26,22 @@ def main():
     parser.add_argument("--port", type=int, default=8000, help="Port to listen on")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
     parser.add_argument("--workers", type=int, default=1, help="Number of worker processes")
-    parser.add_argument("--log-level", default="info", choices=["debug", "info", "warning", "error"])
-    
+    parser.add_argument(
+        "--log-level", default="info", choices=["debug", "info", "warning", "error"]
+    )
+
     args = parser.parse_args()
-    
+
     # Set log level
     log_level = getattr(logging, args.log_level.upper())
     logging.getLogger().setLevel(log_level)
-    
+
     logger.info("Starting OpenRuntime v2...")
     logger.info(f"Host: {args.host}")
     logger.info(f"Port: {args.port}")
     logger.info(f"Workers: {args.workers}")
     logger.info(f"Log Level: {args.log_level}")
-    
+
     try:
         if args.reload:
             # Development mode with auto-reload
@@ -49,7 +50,7 @@ def main():
                 host=args.host,
                 port=args.port,
                 reload=True,
-                log_level=args.log_level
+                log_level=args.log_level,
             )
         else:
             # Production mode
@@ -58,7 +59,7 @@ def main():
                 host=args.host,
                 port=args.port,
                 workers=args.workers,
-                log_level=args.log_level
+                log_level=args.log_level,
             )
     except KeyboardInterrupt:
         logger.info("Shutting down OpenRuntime v2...")
