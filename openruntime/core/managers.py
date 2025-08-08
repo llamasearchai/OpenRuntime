@@ -214,28 +214,28 @@ class AIAgentManager:
     def _initialize_agents(self):
         agents_config = [
             {
-                "id": "perf_optimizer",
-                "name": "Performance Optimizer",
-                "role": AgentRole.PERFORMANCE_OPTIMIZER,
-                "system_prompt": "You are a GPU performance optimization expert...",
-            },
-            {
-                "id": "system_analyst",
-                "name": "System Analyst",
-                "role": AgentRole.SYSTEM_ANALYST,
-                "system_prompt": "You are a system analysis expert...",
-            },
-            {
-                "id": "code_generator",
-                "name": "Code Generator",
+                "id": "developer",
+                "name": "Developer",
                 "role": AgentRole.CODE_GENERATOR,
-                "system_prompt": "You are an expert programmer...",
+                "system_prompt": "You are a software developer that writes code and tests.",
             },
             {
-                "id": "shell_executor",
-                "name": "Shell Executor",
+                "id": "analyst",
+                "name": "Analyst",
+                "role": AgentRole.SYSTEM_ANALYST,
+                "system_prompt": "You analyze system metrics and produce insights.",
+            },
+            {
+                "id": "optimizer",
+                "name": "Optimizer",
+                "role": AgentRole.PERFORMANCE_OPTIMIZER,
+                "system_prompt": "You optimize performance of compute tasks.",
+            },
+            {
+                "id": "debugger",
+                "name": "Debugger",
                 "role": AgentRole.SHELL_EXECUTOR,
-                "system_prompt": "You are a shell command expert...",
+                "system_prompt": "You run shell commands to diagnose and fix issues.",
             },
         ]
         for cfg in agents_config:

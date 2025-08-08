@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install cSpell
         run: npm install -g cspell
-      
+
       - name: Run cSpell
         run: cspell "**/*.{py,md,yml,yaml,json,js,ts,sh}" --config ./cspell.json
 
@@ -26,16 +26,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11']
-    
+        python-version: ["3.11"]
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Cache pip packages
         uses: actions/cache@v3
         with:
@@ -43,27 +43,27 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-      
+
       - name: Run Black
         run: black --check openruntime/ tests/
-      
+
       - name: Run isort
         run: isort --check-only openruntime/ tests/
-      
+
       - name: Run flake8
         run: flake8 openruntime/ tests/ --max-line-length=100 --extend-ignore=E203,E402,F401,F841,E712,W293,W291,E722
-      
+
       - name: Run mypy (core only)
         run: mypy openruntime/core openruntime/api_v2.py openruntime/main_v2.py --ignore-missing-imports || true
-      
+
       - name: Run bandit
         run: bandit -r openruntime/ --skip B101
-      
+
       - name: Run safety check
         run: safety check --json
         continue-on-error: true
@@ -75,71 +75,71 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]
-        python-version: ['3.11']
-    
+        python-version: ["3.11"]
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Install core dependencies
         run: |
           python -m pip install --upgrade pip
           pip install fastapi uvicorn httpx pydantic numpy python-dotenv
-      
+
       - name: Test imports
         run: |
           python -c "from openruntime.runtime_engine import RuntimeEngine"
           python -c "from openruntime.api_v2 import app"
           python -c "from openruntime.backends.base_backend import BaseBackend"
-      
+
       - name: Run validation script
         run: python validate_fixes.py
 
   documentation:
     name: Documentation Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      
+          python-version: "3.11"
+
       - name: Check README exists
         run: |
           test -f README.md
           test -f README_V2.md
-      
+
       - name: Check for broken links in markdown
         uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
-          use-quiet-mode: 'yes'
-          use-verbose-mode: 'no'
-          config-file: '.github/markdown-link-check-config.json'
+          use-quiet-mode: "yes"
+          use-verbose-mode: "no"
+          config-file: ".github/markdown-link-check-config.json"
         continue-on-error: true
 
   pre-commit:
     name: Pre-commit Hooks
     continue-on-error: true
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      
+          python-version: "3.11"
+
       - name: Install pre-commit
         run: pip install pre-commit
-      
+
       - name: Run pre-commit
         run: pre-commit run --all-files
         continue-on-error: true

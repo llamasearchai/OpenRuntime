@@ -623,10 +623,23 @@ Provide complete, working code with explanations.""",
 
 @app.get("/ai/agents")
 async def list_ai_agents():
-    """List all available AI agents"""
+    """List all available AI agents with normalized role labels"""
+    role_map = {
+        "code_generator": "DEVELOPER",
+        "system_analyst": "ANALYST",
+        "performance_optimizer": "OPTIMIZER",
+        "shell_executor": "DEBUGGER",
+    }
     agents_info = []
     for agent in enhanced_runtime.ai_manager.agents.values():
-        agents_info.append(asdict(agent))
+        agents_info.append(
+            {
+                "role": role_map.get(agent.role.value, agent.role.name),
+                "name": agent.name,
+                "description": agent.description or (agent.system_prompt[:120] if agent.system_prompt else ""),
+                "capabilities": agent.capabilities,
+            }
+        )
     return {"agents": agents_info}
 
 
@@ -674,17 +687,8 @@ async def list_devices():
 
 @app.get("/metrics")
 async def get_system_metrics():
-    """Get system metrics"""
-    return {
-        "gpu_metrics": (
-            enhanced_runtime.gpu_manager.metrics_history[-10:]
-            if hasattr(enhanced_runtime.gpu_manager, "metrics_history")
-            else []
-        ),
-        "mlx_info": enhanced_runtime.mlx_manager.device_info,
-        "ai_insights_count": len(enhanced_runtime.ai_insights),
-        "timestamp": datetime.now().isoformat(),
-    }
+    """Get system metrics (normalized to core format)"""
+    return enhanced_runtime.gpu_manager.get_metrics()
 
 
 @app.get("/devices/{device_id}/metrics")

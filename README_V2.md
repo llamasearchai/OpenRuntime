@@ -7,6 +7,7 @@ OpenRuntime v2 is a production-ready, multi-backend runtime system that provides
 ## Key Features
 
 ### Multi-Backend Architecture
+
 - **MLX**: Native Apple Silicon GPU acceleration
 - **PyTorch**: Cross-platform GPU/CPU support with MPS for Apple Silicon
 - **ONNX Runtime**: High-performance inference with CoreML support
@@ -16,6 +17,7 @@ OpenRuntime v2 is a production-ready, multi-backend runtime system that provides
 - **CPU Fallback**: Always-available fallback for basic operations
 
 ### Advanced Capabilities
+
 - **Agent Orchestration**: Multi-agent workflows with OpenAI Agents SDK
 - **Tool Use**: Extensible tool system for agent capabilities
 - **Embeddings**: Multiple embedding models via ONNX and OpenAI
@@ -24,6 +26,7 @@ OpenRuntime v2 is a production-ready, multi-backend runtime system that provides
 - **Workflow Management**: Complex multi-step task orchestration
 
 ### Production Features
+
 - **Async Architecture**: High-performance async/await throughout
 - **Task Queue**: Efficient task scheduling and management
 - **Prometheus Metrics**: Built-in monitoring and observability
@@ -34,6 +37,7 @@ OpenRuntime v2 is a production-ready, multi-backend runtime system that provides
 ## Installation
 
 ### Prerequisites
+
 - Python 3.9+
 - macOS (Apple Silicon recommended) or Linux
 - Optional: CUDA-capable GPU for PyTorch acceleration
@@ -91,30 +95,31 @@ python -m openruntime.main_v2 --host 0.0.0.0 --port 8080
 
 ```bash
 # Check system health
-./openruntime_cli_v2.py health
+openruntime-cli health
 
 # List available backends
-./openruntime_cli_v2.py backends
+openruntime-cli backends
 
 # List available models
-./openruntime_cli_v2.py models
+openruntime-cli models
 
 # Generate completion
-./openruntime_cli_v2.py complete "Explain quantum computing" --model gpt-4 --backend openai
+openruntime-cli complete "Explain quantum computing" --model gpt-4o-mini --backend openai
 
 # Generate embeddings
-./openruntime_cli_v2.py embed "Sample text" --backend onnx
+openruntime-cli embed "Sample text" --backend onnx
 
 # Run agent
-./openruntime_cli_v2.py agent "Analyze this codebase and suggest improvements" --type developer
+openruntime-cli agent "Analyze this codebase and suggest improvements" --type developer
 
 # Run workflow
-./openruntime_cli_v2.py workflow analysis --data '{"target": "system"}'
+openruntime-cli workflow analysis --data '{"target": "system"}'
 ```
 
 ### API Examples
 
 #### Completions
+
 ```python
 import httpx
 
@@ -128,6 +133,7 @@ async with httpx.AsyncClient() as client:
 ```
 
 #### Embeddings
+
 ```python
 response = await client.post("http://localhost:8000/v2/embeddings", json={
     "texts": ["Hello world", "OpenRuntime v2"],
@@ -137,6 +143,7 @@ response = await client.post("http://localhost:8000/v2/embeddings", json={
 ```
 
 #### Agent Execution
+
 ```python
 response = await client.post("http://localhost:8000/v2/agents", json={
     "agent_type": "developer",
@@ -147,6 +154,7 @@ response = await client.post("http://localhost:8000/v2/agents", json={
 ```
 
 #### WebSocket Streaming
+
 ```python
 import websockets
 import json
@@ -159,7 +167,7 @@ async with websockets.connect("ws://localhost:8000/v2/ws") as ws:
         "payload": {"prompt": "Hello"},
         "backend": "ollama"
     }))
-    
+
     # Receive updates
     async for message in ws:
         data = json.loads(message)
@@ -236,36 +244,42 @@ export OPENRUNTIME_MODELS_DIR="~/.openruntime/models"
 ## Backend Details
 
 ### MLX (Apple Silicon)
+
 - Optimized for M1/M2/M3 chips
 - Metal Performance Shaders acceleration
 - Unified memory architecture benefits
 - Models: Mistral, Llama 2, Phi-2, Gemma
 
 ### PyTorch
+
 - CUDA support for NVIDIA GPUs
 - MPS support for Apple Silicon
 - CPU fallback
 - Wide model compatibility
 
 ### ONNX Runtime
+
 - High-performance inference
 - CoreML provider for macOS
 - Embedding models from HuggingFace
 - Quantization support
 
 ### OpenAI
+
 - Complete API integration
 - Agents SDK with multi-agent support
 - Tool use capabilities
 - GPT-4, GPT-3.5, embeddings
 
 ### Ollama
+
 - Local model execution
 - No internet required
 - Models: Llama 2, Mistral, CodeLlama
 - Multi-modal support
 
 ### LLM CLI
+
 - Simon Willison's LLM tool integration
 - Plugin ecosystem
 - Command generation
@@ -287,6 +301,7 @@ python -m pytest tests/ --cov=openruntime --cov-report=term-missing
 ## Monitoring
 
 ### Prometheus Metrics
+
 - Request counts and latency
 - Task execution metrics
 - Backend performance
@@ -295,6 +310,7 @@ python -m pytest tests/ --cov=openruntime --cov-report=term-missing
 Access metrics at: `http://localhost:8000/v2/metrics`
 
 ### Health Check
+
 ```bash
 curl http://localhost:8000/v2/health
 ```
@@ -302,12 +318,14 @@ curl http://localhost:8000/v2/health
 ## Performance
 
 ### Benchmarks (Apple M2 Max)
+
 - MLX Inference: ~100ms for 1K tokens
 - ONNX Embeddings: ~5ms per text
 - OpenAI Completion: ~2s (network dependent)
 - Ollama Local: ~500ms for small models
 
 ### Optimization Tips
+
 - Use MLX on Apple Silicon for best performance
 - Enable caching for repeated queries
 - Batch embedding requests
@@ -318,14 +336,17 @@ curl http://localhost:8000/v2/health
 ### Common Issues
 
 1. **MLX not available**
+
    - Ensure you're on Apple Silicon Mac
    - Install with: `pip install mlx`
 
 2. **Ollama connection failed**
+
    - Start Ollama: `ollama serve`
    - Check port 11434 is accessible
 
 3. **ONNX models missing**
+
    - Models download on first use
    - Check ~/.openruntime/models/onnx/
 
@@ -336,6 +357,7 @@ curl http://localhost:8000/v2/health
 ## Contributing
 
 Contributions are welcome! Please:
+
 1. Fork the repository
 2. Create a feature branch
 3. Add tests for new features

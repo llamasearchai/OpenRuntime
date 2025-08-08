@@ -1,4 +1,22 @@
 {
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "ignorePaths": [
+    "node_modules/**",
+    "**/.venv/**",
+    "**/__pycache__/**"
+  ],
+  "words": [
+    "randn",
+    "sppci",
+    "spdisplays",
+    "powermetrics",
+    "Willison",
+    "Willison's"
+  ]
+}
+{
     "version": "0.2",
     "language": "en",
     "words": [

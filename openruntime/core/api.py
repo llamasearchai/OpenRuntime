@@ -134,13 +134,21 @@ async def get_metrics():
 async def list_ai_agents():
     """List available AI agents and their capabilities."""
     agents = []
-    for role, agent in app.state.runtime_manager.ai_manager.agents.items():
+    role_map = {
+        "code_generator": "DEVELOPER",
+        "system_analyst": "ANALYST",
+        "performance_optimizer": "OPTIMIZER",
+        "shell_executor": "DEBUGGER",
+    }
+    for _, agent in app.state.runtime_manager.ai_manager.agents.items():
+        # agent is a dataclass AIAgent
+        role_label = role_map.get(agent.role.value, agent.role.name)
         agents.append(
             {
-                "role": role,
-                "name": agent["name"],
-                "description": agent["description"],
-                "capabilities": agent.get("capabilities", []),
+                "role": role_label,
+                "name": agent.name,
+                "description": agent.description or (agent.system_prompt[:120] if agent.system_prompt else ""),
+                "capabilities": agent.capabilities,
             }
         )
     return {"agents": agents}
