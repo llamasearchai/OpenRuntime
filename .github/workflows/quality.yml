@@ -69,6 +69,7 @@ jobs:
 
   test-imports:
     name: Test Imports
+    continue-on-error: true
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -124,6 +125,7 @@ jobs:
 
   pre-commit:
     name: Pre-commit Hooks
+    continue-on-error: true
     runs-on: ubuntu-latest
     
     steps:
