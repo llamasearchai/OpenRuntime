@@ -320,3 +320,8 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+
+def entrypoint():
+    """Synchronous entrypoint for console_scripts."""
+    asyncio.run(main())

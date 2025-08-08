@@ -98,7 +98,7 @@ Issues = "https://github.com/nemesis-collective/OpenRuntime/issues"
 
 [project.scripts]
 openruntime = "openruntime.main_v2:main"
-openruntime-cli = "openruntime_cli_v2:main"
+openruntime-cli = "openruntime_cli_v2:entrypoint"
 
 [tool.black]
 line-length = 100
