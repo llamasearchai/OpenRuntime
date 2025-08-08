@@ -7,6 +7,7 @@ with integrated AI capabilities.
 
 __version__ = "2.0.0"
 __author__ = "Nik Jois"
+__email__ = "nikjois@llamasearch.ai"
 
 from .core.models import (
     GPUDevice,

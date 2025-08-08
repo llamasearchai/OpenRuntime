@@ -14,8 +14,14 @@ websockets>=11.0.0
 
 # AI and ML
 openai>=1.35.0
+openai-agents>=0.1.0
 langchain
 langchain-openai
+llm>=0.26.0
+llm-ollama>=0.3.0
+llm-mlx>=0.1.0; platform_machine=="arm64"
+llm-embed-onnx>=0.1.0
+onnxruntime>=1.16.0
 
 # Async support
 aiofiles>=23.0.0
